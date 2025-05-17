@@ -1,0 +1,62 @@
+# ไฟล์ที่สร้างจาก Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ไฟล์ log
+logs/
+*.log
+
+# ไฟล์ที่สร้างจากการทำงานของโปรแกรม
+output/
+temp/
+
+# ไฟล์ระบบ
+.DS_Store
+Thumbs.db
+.directory
+
+# ไฟล์สภาพแวดล้อม
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ไฟล์ IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ไฟล์รูปภาพขนาดใหญ่
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tif
+*.tiff
+
+# ยกเว้นไฟล์รูปภาพที่ใช้เป็นไอคอนหรือทรัพยากรของโปรแกรม
+!icons/*.png
+!resources/*.png
