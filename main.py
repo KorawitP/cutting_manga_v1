@@ -3,18 +3,18 @@ import sys
 import json
 import random
 import shutil
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
+from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                            QPushButton, QFileDialog, QLabel, QMessageBox,
                            QHBoxLayout, QDialog, QScrollArea, QProgressDialog,
                            QProgressBar, QGroupBox, QSpinBox, QInputDialog, QLineEdit,
                            QSlider, QComboBox, QCheckBox, QTabWidget, QFrame, QStatusBar,
                            QSplitter, QToolButton, QStyle, QColorDialog)
-from PyQt5.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QFont, QIcon, QCursor, QPalette, QBrush
-from PyQt5.QtCore import Qt, QPointF, QRectF, QPropertyAnimation, QEasingCurve, QSize, QSettings, pyqtSignal
+from PySide6.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QFont, QIcon, QCursor, QPalette, QBrush
+from PySide6.QtCore import Qt, QPointF, QRectF, QPropertyAnimation, QEasingCurve, QSize, QSettings, Signal
 from PIL import Image, ImageEnhance
 import numpy as np
 from datetime import datetime
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsLineItem
+from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsLineItem
 from io import BytesIO
 import gc
 import time
@@ -1063,7 +1063,7 @@ class ManualImageSplitter(QMainWindow):
 
 class ManualSplitView(QGraphicsView):
     # ประกาศ signal เป็นตัวแปรคลาส
-    history_changed = pyqtSignal()
+    history_changed = Signal()
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -2282,9 +2282,12 @@ class ManualSplitDialog(QDialog):
         self.view.set_background_color(self.bg_color)
 
 if __name__ == '__main__':
-    # เพิ่มบรรทัดนี้เพื่อแก้ปัญหา QPixmap
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    # สำหรับ PySide6 High DPI scaling เปิดใช้งานโดยอัตโนมัติ
     app = QApplication(sys.argv)
+    
+    # ตั้งค่าธีมให้กับแอพพลิเคชัน
     window = ManualImageSplitter()
+    ModernStyle.apply_theme(app, window.dark_mode)
+    
     window.show()
-    sys.exit(app.exec_()) 
+    sys.exit(app.exec()) 
