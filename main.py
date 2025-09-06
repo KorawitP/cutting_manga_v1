@@ -3,18 +3,21 @@ import sys
 import json
 import random
 import shutil
-from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                            QPushButton, QFileDialog, QLabel, QMessageBox,
                            QHBoxLayout, QDialog, QScrollArea, QProgressDialog,
                            QProgressBar, QGroupBox, QSpinBox, QInputDialog, QLineEdit,
                            QSlider, QComboBox, QCheckBox, QTabWidget, QFrame, QStatusBar,
                            QSplitter, QToolButton, QStyle, QColorDialog)
-from PySide6.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QFont, QIcon, QCursor, QPalette, QBrush
-from PySide6.QtCore import Qt, QPointF, QRectF, QPropertyAnimation, QEasingCurve, QSize, QSettings, Signal
+from PyQt5.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QFont, QIcon, QCursor, QPalette, QBrush
+from PyQt5.QtCore import Qt, QPointF, QRectF, QPropertyAnimation, QEasingCurve, QSize, QSettings, pyqtSignal
 from PIL import Image, ImageEnhance
 import numpy as np
 from datetime import datetime
-from PySide6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsLineItem
+
+# เพิ่มการรองรับภาพขนาดใหญ่ (สำหรับมังฮวายาวๆ)
+Image.MAX_IMAGE_PIXELS = None  # ไม่จำกัดขนาดภาพ
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsLineItem
 from io import BytesIO
 import gc
 import time
@@ -1060,10 +1063,20 @@ class ManualImageSplitter(QMainWindow):
         except Exception as e:
             self.log_message(f"เกิดข้อผิดพลาดในการแบ่งภาพ: {str(e)}")
             return False
+        finally:
+            # ล้างหน่วยความจำสำหรับภาพขนาดใหญ่
+            try:
+                if 'working_image' in locals() and working_image and working_image != merged_img:
+                    working_image.close()
+                if merged_img:
+                    merged_img.close()
+            except:
+                pass
+            gc.collect()
 
 class ManualSplitView(QGraphicsView):
     # ประกาศ signal เป็นตัวแปรคลาส
-    history_changed = Signal()
+    history_changed = pyqtSignal()
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -1971,10 +1984,11 @@ class ManualSplitDialog(QDialog):
         
         self.resize_slider = QSlider(Qt.Horizontal)
         self.resize_slider.setMinimum(10)
-        self.resize_slider.setMaximum(200)  # เพิ่มช่วงให้ซูมได้มากขึ้น
+        self.resize_slider.setMaximum(1000)  # ไม่จำกัดความยาวภาพ - เพิ่มเป็น 1000% (10 เท่า) สำหรับภาพมังฮวายาวๆ
         self.resize_slider.setValue(100)
+        self.resize_slider.setToolTip("ปรับขนาดภาพ 10%-1000% (ไม่จำกัดความยาว สำหรับภาพมังฮวายาวๆ)")
         self.resize_slider.setTickPosition(QSlider.TicksBelow)
-        self.resize_slider.setTickInterval(10)
+        self.resize_slider.setTickInterval(50)  # เปลี่ยนช่วงเป็น 50% เพื่อให้เหมาะกับช่วงใหม่
         self.resize_slider.setStyleSheet("""
             QSlider::groove:horizontal {
                 height: 4px;
@@ -2282,12 +2296,9 @@ class ManualSplitDialog(QDialog):
         self.view.set_background_color(self.bg_color)
 
 if __name__ == '__main__':
-    # สำหรับ PySide6 High DPI scaling เปิดใช้งานโดยอัตโนมัติ
+    # เพิ่มบรรทัดนี้เพื่อแก้ปัญหา QPixmap
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     app = QApplication(sys.argv)
-    
-    # ตั้งค่าธีมให้กับแอพพลิเคชัน
     window = ManualImageSplitter()
-    ModernStyle.apply_theme(app, window.dark_mode)
-    
     window.show()
-    sys.exit(app.exec()) 
+    sys.exit(app.exec_()) 
