@@ -2162,6 +2162,14 @@ class ManualSplitDialog(QDialog):
         """รับค่าจุดตัดแนวตั้งที่ผู้ใช้กำหนด"""
         return self.view.get_vertical_breakpoints()
 
+    def keyPressEvent(self, event):
+        """จัดการการกดปุ่ม - ปิดการทำงานของ ESC"""
+        if event.key() == Qt.Key_Escape:
+            # ไม่ทำอะไรเมื่อกด ESC เพื่อป้องกันการปิด dialog โดยไม่ตั้งใจ
+            event.ignore()
+        else:
+            super().keyPressEvent(event)
+
     def undo_action(self):
         """เรียกใช้คำสั่ง Undo ของ view"""
         self.view.undo()
