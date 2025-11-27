@@ -825,7 +825,7 @@ class ManualImageSplitter(QMainWindow):
             # แสดงหน้าต่างแบ่งภาพ
             self.log_message("เปิดหน้าต่างแบ่งภาพด้วยตนเอง...")
             dialog = ManualSplitDialog(self, pixmap)
-            if dialog.exec_() == QDialog.Accepted:
+            if dialog.exec() == QDialog.Accepted:
                 h_breakpoints = dialog.get_horizontal_breakpoints()
                 v_breakpoints = dialog.get_vertical_breakpoints()
                 scale_factor = dialog.get_scale_factor()
@@ -1160,7 +1160,7 @@ class ManualSplitView(QGraphicsView):
     def mousePressEvent(self, event):
         """จัดการการคลิกเมาส์"""
         if event.button() == Qt.LeftButton:
-            pos = self.mapToScene(event.pos())
+            pos = self.mapToScene(event.position().toPoint())
             
             # ตรวจสอบ Ctrl+Shift+คลิกซ้าย
             if event.modifiers() == (Qt.ControlModifier | Qt.ShiftModifier):
@@ -1203,7 +1203,7 @@ class ManualSplitView(QGraphicsView):
         """จัดการการเคลื่อนที่ของเมาส์"""
         if self.dragging_line:
             # โค้ดสำหรับการลากเส้น
-            pos = self.mapToScene(event.pos())
+            pos = self.mapToScene(event.position().toPoint())
             
             if self.hovered_line_type == "h":
                 # ลากเส้นแนวนอน
@@ -1221,7 +1221,7 @@ class ManualSplitView(QGraphicsView):
                 line.setLine(new_x, -500, new_x, self.scene.height() + 500)
         else:
             # เช็คว่าเมาส์อยู่เหนือเส้นใดๆ หรือไม่
-            pos = self.mapToScene(event.pos())
+            pos = self.mapToScene(event.position().toPoint())
             
             # ตรวจหาเส้นแนวนอนที่ใกล้เมาส์
             h_line = self.find_nearby_horizontal_line(pos.y())
@@ -1279,7 +1279,7 @@ class ManualSplitView(QGraphicsView):
     def mouseReleaseEvent(self, event):
         """จัดการการปล่อยเมาส์"""
         if self.dragging_line:
-            pos = self.mapToScene(event.pos())
+            pos = self.mapToScene(event.position().toPoint())
             
             if self.hovered_line_type == "h":
                 # เส้นแนวนอน
@@ -1705,9 +1705,11 @@ class ManualSplitDialog(QDialog):
         
         # --- ส่วนควบคุม (ตั้งให้อยู่ด้านล่าง) ---
         controls_container = QWidget()
-        controls_container.setMaximumHeight(180)  # จำกัดความสูงของส่วนควบคุม
+        controls_container.setMinimumHeight(200)  # กำหนดความสูงขั้นต่ำของส่วนควบคุม
+        controls_container.setMaximumHeight(250)  # จำกัดความสูงของส่วนควบคุม
         controls_layout = QVBoxLayout(controls_container)
         controls_layout.setContentsMargins(10, 5, 10, 5)
+        controls_layout.setSpacing(5)
         
         # แถบควบคุมด้านบน (คำแนะนำและ Undo/Redo)
         top_bar = QWidget()
@@ -1798,7 +1800,8 @@ class ManualSplitDialog(QDialog):
         # --- แท็บ 1: ตั้งค่าเส้น ---
         line_tab = QWidget()
         line_layout = QHBoxLayout(line_tab)
-        line_layout.setContentsMargins(10, 10, 10, 10)
+        line_layout.setContentsMargins(8, 5, 8, 5)
+        line_layout.setSpacing(8)
         
         # ตั้งค่าสีเส้นแนวนอน
         h_color_label = QLabel("สีเส้นแนวนอน:")
@@ -1908,7 +1911,8 @@ class ManualSplitDialog(QDialog):
         # --- แท็บ 2: พื้นหลัง ---
         bg_tab = QWidget()
         bg_layout = QHBoxLayout(bg_tab)
-        bg_layout.setContentsMargins(10, 10, 10, 10)
+        bg_layout.setContentsMargins(8, 5, 8, 5)
+        bg_layout.setSpacing(8)
         
         bg_color_label = QLabel("สีพื้นหลัง:")
         bg_color_label.setStyleSheet("color: #444444;")
@@ -1962,7 +1966,8 @@ class ManualSplitDialog(QDialog):
         # --- แท็บ 3: ขนาดภาพ ---
         resize_tab = QWidget()
         resize_layout = QHBoxLayout(resize_tab)
-        resize_layout.setContentsMargins(10, 10, 10, 10)
+        resize_layout.setContentsMargins(8, 5, 8, 5)
+        resize_layout.setSpacing(8)
         
         # เปลี่ยนเป็นใช้ Slider แทน spinbox เพื่อให้ใช้งานง่ายและสวยงาม
         resize_label = QLabel("ขนาดภาพ:")
@@ -2085,7 +2090,7 @@ class ManualSplitDialog(QDialog):
         splitter.addWidget(controls_container)
         
         # กำหนดอัตราส่วนระหว่าง canvas และควบคุม
-        splitter.setSizes([800, 180])
+        splitter.setSizes([800, 220])
         
         # เพิ่ม splitter ไปยัง layout หลัก
         main_layout.addWidget(splitter)
