@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                            QProgressBar, QGroupBox, QSpinBox, QInputDialog, QLineEdit,
                            QSlider, QComboBox, QCheckBox, QTabWidget, QFrame, QStatusBar,
                            QSplitter, QToolButton, QStyle, QColorDialog)
-from PySide6.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QFont, QIcon, QCursor, QPalette, QBrush
+from PySide6.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QFont, QIcon, QCursor, QPalette, QBrush, QImageReader
 from PySide6.QtCore import Qt, QPointF, QRectF, QPropertyAnimation, QEasingCurve, QSize, QSettings, Signal
 from PIL import Image, ImageEnhance
 import numpy as np
@@ -2091,10 +2091,10 @@ class ManualSplitDialog(QDialog):
         main_layout.addWidget(splitter)
         
         # ตั้งค่าขนาดหน้าต่าง - ใช้เต็มหน้าจอเกือบทั้งหมด
-        desktop = QApplication.desktop().availableGeometry()
+        screen = QApplication.primaryScreen().availableGeometry()
         self.setMinimumSize(800, 600)
-        width = int(desktop.width() * 0.9)
-        height = int(desktop.height() * 0.9)
+        width = int(screen.width() * 0.9)
+        height = int(screen.height() * 0.9)
         self.resize(width, height)
         
         # กำหนด layout หลักให้กับ dialog
@@ -2284,6 +2284,9 @@ class ManualSplitDialog(QDialog):
 if __name__ == '__main__':
     # สำหรับ PySide6 High DPI scaling เปิดใช้งานโดยอัตโนมัติ
     app = QApplication(sys.argv)
+    
+    # ปิดลิมิตการจัดสรรหน่วยความจำสำหรับภาพ (เพื่อรองรับภาพขนาดใหญ่)
+    QImageReader.setAllocationLimit(0)  # 0 = ไม่จำกัด
     
     # ตั้งค่าธีมให้กับแอพพลิเคชัน
     window = ManualImageSplitter()
