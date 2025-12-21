@@ -19,6 +19,9 @@ from io import BytesIO
 import gc
 import time
 
+# ปิดคำเตือน decompression bomb สำหรับภาพขนาดใหญ่
+Image.MAX_IMAGE_PIXELS = None
+
 class ModernStyle:
     """คลาสที่มีสไตล์และธีมต่างๆ สำหรับแอพพลิเคชัน"""
     
