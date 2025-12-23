@@ -656,9 +656,7 @@ class ManualImageSplitter(QMainWindow):
         if confirm == QMessageBox.Yes:
             self.image_files = []
             self.update_file_label()
-            # ล้างช่องข้อมูลการบันทึก
-            self.output_path_edit.clear()
-            self.episode_edit.clear()
+            # ไม่ล้างช่องข้อมูลการบันทึก - เก็บไว้ให้ผู้ใช้
             self.log_message("รีเซตรายการไฟล์")
             self.statusBar.showMessage("รีเซตรายการไฟล์แล้ว", 3000)
 
