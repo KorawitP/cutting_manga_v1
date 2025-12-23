@@ -871,7 +871,18 @@ class ManualImageSplitter(QMainWindow):
                 folder_name = os.path.splitext(os.path.basename(self.image_files[0]))[0]
                 output_dir = os.path.join(base_folder, f"split_results_{folder_name}")
             
-            os.makedirs(output_dir, exist_ok=True)
+            # สร้างโฟลเดอร์ย่อยใหม่ตามชื่อที่ผู้ใช้กรอก
+            if episode_num:
+                final_output_dir = os.path.join(output_dir, episode_num)
+            else:
+                folder_name = os.path.splitext(os.path.basename(self.image_files[0]))[0]
+                final_output_dir = os.path.join(output_dir, folder_name)
+            
+            os.makedirs(final_output_dir, exist_ok=True)
+            self.log_message(f"สร้างโฟลเดอร์: {final_output_dir}")
+            
+            # ใช้โฟลเดอร์ย่อยเป็นปลายทางสำหรับบันทึกไฟล์
+            output_dir = final_output_dir
             
             # ย่อขนาดภาพถ้าจำเป็น
             if scale_factor != 1.0:
