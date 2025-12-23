@@ -354,57 +354,6 @@ class ModernButton(QPushButton):
             self._animation.start()
         super().mousePressEvent(event)
 
-class DropArea(QLabel):
-    """พื้นที่ลากและวางไฟล์ที่มีเอฟเฟกต์เคลื่อนไหว"""
-    
-    def __init__(self, parent=None, is_dark=False):
-        super().__init__(parent)
-        self.theme = ModernStyle.get_theme(is_dark)
-        self.setAlignment(Qt.AlignCenter)
-        self.setText("ลากไฟล์หรือโฟลเดอร์มาที่นี่")
-        self.setWordWrap(True)
-        self.setAcceptDrops(True)
-        
-        # ตั้งค่าสไตล์
-        self.normal_style = f"""
-            QLabel {{
-                border: 2px dashed {self.theme["border"]};
-                border-radius: 10px;
-                padding: 30px;
-                background-color: {self.theme["card_bg"]};
-                color: {self.theme["text"]};
-                font-size: 14px;
-                font-weight: bold;
-            }}
-        """
-        
-        self.hover_style = f"""
-            QLabel {{
-                border: 2px dashed {self.theme["primary"]};
-                border-radius: 10px;
-                padding: 30px;
-                background-color: {self.theme["hover"]};
-                color: {self.theme["primary"]};
-                font-size: 14px;
-                font-weight: bold;
-            }}
-        """
-        
-        self.setStyleSheet(self.normal_style)
-    
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasUrls():
-            self.setStyleSheet(self.hover_style)
-            event.acceptProposedAction()
-    
-    def dragLeaveEvent(self, event):
-        self.setStyleSheet(self.normal_style)
-        super().dragLeaveEvent(event)
-    
-    def dropEvent(self, event):
-        self.setStyleSheet(self.normal_style)
-        self.parent().dropEvent(event)  # ส่งต่อไปให้ parent จัดการ
-
 class LineAction:
     """คลาสสำหรับเก็บข้อมูลการกระทำเพื่อใช้กับ undo/redo"""
     
@@ -497,10 +446,6 @@ class ManualImageSplitter(QMainWindow):
         # แท็บหลัก
         main_tab = QWidget()
         main_tab_layout = QVBoxLayout(main_tab)
-        
-        # สร้าง drop area
-        self.drop_area = DropArea(self, self.dark_mode)
-        main_tab_layout.addWidget(self.drop_area)
         
         # ปุ่มควบคุม
         button_layout = QHBoxLayout()
@@ -634,30 +579,6 @@ class ManualImageSplitter(QMainWindow):
         # แจ้งเตือนผู้ใช้ให้รีสตาร์ทแอพพลิเคชัน
         QMessageBox.information(self, "เปลี่ยนธีม", 
                               "การเปลี่ยนธีมจะมีผลเมื่อรีสตาร์ทโปรแกรม")
-
-    def dragEnterEvent(self, event):
-        """รองรับการลากไฟล์เข้ามา"""
-        if event.mimeData().hasUrls():
-            event.acceptProposedAction()
-
-    def dropEvent(self, event):
-        """รับไฟล์ที่ลากมา"""
-        file_paths = []
-        for url in event.mimeData().urls():
-            path = url.toLocalFile()
-            if os.path.isdir(path):
-                # ถ้าเป็นโฟลเดอร์ให้เพิ่มไฟล์ภาพทั้งหมด
-                for file in os.listdir(path):
-                    if file.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
-                        file_paths.append(os.path.join(path, file))
-            elif path.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
-                file_paths.append(path)
-        
-        if file_paths:
-            self.image_files.extend(file_paths)
-            self.update_file_label()
-            self.log_message(f"เพิ่มไฟล์จากการลาก: {len(file_paths)} ไฟล์")
-            self.statusBar.showMessage(f"นำเข้า {len(file_paths)} ไฟล์สำเร็จ", 3000)
 
     def select_files(self):
         """เลือกไฟล์ภาพผ่าน File Dialog"""
