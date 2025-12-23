@@ -397,6 +397,10 @@ class ManualImageSplitter(QMainWindow):
         # ตัวแปรเก็บไฟล์
         self.image_files = []
         
+        # ตั้งค่าเริ่มต้นสำหรับการบันทึก
+        self.default_output_path = ""
+        self.default_episode_name = ""
+        
         # เริ่มต้นสร้าง UI
         self.setup_ui()
         
@@ -473,6 +477,41 @@ class ManualImageSplitter(QMainWindow):
         file_info_layout.addWidget(self.file_label)
         
         main_tab_layout.addWidget(file_info_group)
+        
+        # เพิ่มส่วนการตั้งค่าการบันทึก
+        save_settings_group = QGroupBox("การตั้งค่าการบันทึก")
+        save_settings_layout = QVBoxLayout(save_settings_group)
+        
+        # ช่องใส่พาธปลายทาง
+        output_path_layout = QHBoxLayout()
+        output_path_label = QLabel("โฟลเดอร์ปลายทาง:")
+        output_path_layout.addWidget(output_path_label)
+        
+        self.output_path_edit = QLineEdit()
+        self.output_path_edit.setPlaceholderText("เลือกโฟลเดอร์สำหรับบันทึกภาพที่ตัดแล้ว...")
+        output_path_layout.addWidget(self.output_path_edit)
+        
+        self.browse_btn = ModernButton("...", self,
+                                     self.style().standardIcon(QStyle.SP_DirOpenIcon),
+                                     self.theme["accent"])
+        self.browse_btn.setMaximumWidth(40)
+        self.browse_btn.clicked.connect(self.browse_output_folder)
+        output_path_layout.addWidget(self.browse_btn)
+        
+        save_settings_layout.addLayout(output_path_layout)
+        
+        # ช่องใส่เลขตอน/ชื่อไฟล์
+        episode_layout = QHBoxLayout()
+        episode_label = QLabel("เลขตอน/ชื่อไฟล์:")
+        episode_layout.addWidget(episode_label)
+        
+        self.episode_edit = QLineEdit()
+        self.episode_edit.setPlaceholderText("เช่น 10 จะได้ 10_1, 10_2, ...")
+        episode_layout.addWidget(self.episode_edit)
+        
+        save_settings_layout.addLayout(episode_layout)
+        
+        main_tab_layout.addWidget(save_settings_group)
         
         # Progress Bar
         progress_group = QGroupBox("ความคืบหน้า")
@@ -594,6 +633,12 @@ class ManualImageSplitter(QMainWindow):
             self.update_file_label()
             self.log_message(f"เลือกไฟล์: {len(files)} ไฟล์")
             self.statusBar.showMessage(f"เลือก {len(files)} ไฟล์สำเร็จ", 3000)
+            
+            # ตั้งค่าเริ่มต้นสำหรับโฟลเดอร์ปลายทาง
+            if not self.output_path_edit.text():
+                default_folder = os.path.dirname(files[0])
+                self.output_path_edit.setText(default_folder)
+                self.log_message(f"ตั้งค่าโฟลเดอร์ปลายทางเริ่มต้น: {default_folder}")
 
     def reset_files(self):
         """ล้างรายการไฟล์"""
@@ -611,6 +656,9 @@ class ManualImageSplitter(QMainWindow):
         if confirm == QMessageBox.Yes:
             self.image_files = []
             self.update_file_label()
+            # ล้างช่องข้อมูลการบันทึก
+            self.output_path_edit.clear()
+            self.episode_edit.clear()
             self.log_message("รีเซตรายการไฟล์")
             self.statusBar.showMessage("รีเซตรายการไฟล์แล้ว", 3000)
 
@@ -643,6 +691,55 @@ class ManualImageSplitter(QMainWindow):
         else:
             self.file_label.setText("ยังไม่ได้เลือกไฟล์")
 
+    def browse_output_folder(self):
+        """เลือกโฟลเดอร์ปลายทางสำหรับบันทึกไฟล์"""
+        folder = QFileDialog.getExistingDirectory(
+            self,
+            "เลือกโฟลเดอร์สำหรับบันทึกภาพที่ตัดแล้ว",
+            self.output_path_edit.text() or (os.path.dirname(self.image_files[0]) if self.image_files else "")
+        )
+        
+        if folder:
+            self.output_path_edit.setText(folder)
+            self.log_message(f"เลือกโฟลเดอร์ปลายทาง: {folder}")
+
+    def validate_save_settings(self):
+        """ตรวจสอบความถูกต้องของการตั้งค่าการบันทึก"""
+        output_path = self.output_path_edit.text().strip()
+        episode_name = self.episode_edit.text().strip()
+        
+        # ตรวจสอบโฟลเดอร์ปลายทาง
+        if not output_path:
+            QMessageBox.warning(self, "แจ้งเตือน", "กรุณาเลือกโฟลเดอร์ปลายทางสำหรับบันทึกไฟล์")
+            return False
+            
+        if not os.path.exists(output_path):
+            try:
+                os.makedirs(output_path, exist_ok=True)
+                self.log_message(f"สร้างโฟลเดอร์: {output_path}")
+            except Exception as e:
+                QMessageBox.critical(self, "ผิดพลาด", f"ไม่สามารถสร้างโฟลเดอร์ได้: {str(e)}")
+                return False
+        
+        # ตรวจสอบสิทธิ์การเขียนไฟล์
+        if not os.access(output_path, os.W_OK):
+            QMessageBox.critical(self, "ผิดพลาด", "ไม่มีสิทธิ์เขียนไฟล์ในโฟลเดอร์ที่เลือก")
+            return False
+        
+        # ตรวจสอบชื่อไฟล์
+        if not episode_name:
+            QMessageBox.warning(self, "แจ้งเตือน", "กรุณากรอกเลขตอนหรือชื่อไฟล์")
+            return False
+            
+        # ตรวจสอบอักขระที่ไม่ถูกต้องในชื่อไฟล์
+        invalid_chars = '<>:"/\\|?*'
+        if any(char in episode_name for char in invalid_chars):
+            QMessageBox.warning(self, "แจ้งเตือน", 
+                              f"ชื่อไฟล์ไม่สามารถมีอักขระเหล่านี้: {invalid_chars}")
+            return False
+        
+        return True
+
     def log_message(self, message):
         """บันทึกข้อความลงในไฟล์ log และแสดงที่หน้าจอ"""
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -659,6 +756,14 @@ class ManualImageSplitter(QMainWindow):
         if not self.image_files:
             QMessageBox.warning(self, "แจ้งเตือน", "กรุณาเลือกไฟล์ภาพก่อน")
             return
+        
+        # ตรวจสอบการตั้งค่าการบันทึกก่อนเริ่มตัด
+        if not self.validate_save_settings():
+            return
+        
+        # รับค่าจากช่องที่ผู้ใช้กรอก
+        output_dir = self.output_path_edit.text().strip()
+        episode_num = self.episode_edit.text().strip()
         
         try:
             # แสดง progress dialog
@@ -694,27 +799,6 @@ class ManualImageSplitter(QMainWindow):
                 scale_factor = dialog.get_scale_factor()
                 
                 if h_breakpoints or v_breakpoints:
-                    # ถามผู้ใช้เลือกโฟลเดอร์ปลายทาง
-                    output_dir = QFileDialog.getExistingDirectory(
-                        self, 
-                        "เลือกโฟลเดอร์สำหรับบันทึกภาพที่ตัดแล้ว",
-                        os.path.dirname(self.image_files[0])
-                    )
-                    
-                    if not output_dir:  # ถ้าผู้ใช้กดยกเลิก
-                        return
-                    
-                    # ถามผู้ใช้กรอกเลขตอน
-                    episode_num, ok = QInputDialog.getText(
-                        self,
-                        "กรอกเลขตอน",
-                        "กรุณากรอกเลขตอนสำหรับตั้งชื่อไฟล์ (เช่น 10 จะได้ 10_1, 10_2, ...):",
-                        QLineEdit.Normal
-                    )
-                    
-                    if not ok or not episode_num:  # ถ้าผู้ใช้กดยกเลิกหรือไม่กรอกข้อมูล
-                        return
-                    
                     success = self.split_at_breakpoints(merged_img, h_breakpoints, v_breakpoints, scale_factor, output_dir, episode_num)
                     if success:
                         QMessageBox.information(self, "สำเร็จ", "แบ่งภาพเสร็จสิ้น")
