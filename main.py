@@ -580,35 +580,6 @@ class ManualImageSplitter(QMainWindow):
         settings_tab = QWidget()
         settings_layout = QVBoxLayout(settings_tab)
         
-        display_group = QGroupBox("การแสดงผล")
-        display_layout = QVBoxLayout(display_group)
-        
-        # ตั้งค่าธีมมืด
-        dark_mode_layout = QHBoxLayout()
-        dark_mode_label = QLabel("ธีมมืด:")
-        dark_mode_layout.addWidget(dark_mode_label)
-        
-        self.dark_mode_check = QCheckBox()
-        self.dark_mode_check.setChecked(self.dark_mode)
-        self.dark_mode_check.stateChanged.connect(self.change_theme)
-        dark_mode_layout.addWidget(self.dark_mode_check)
-        dark_mode_layout.addStretch()
-        display_layout.addLayout(dark_mode_layout)
-        
-        # ตัวเลือกกรองสีสำหรับสายตาเมื่อยล้า
-        eye_strain_layout = QHBoxLayout()
-        eye_strain_label = QLabel("ลดแสงสีฟ้า:")
-        eye_strain_layout.addWidget(eye_strain_label)
-        
-        self.eye_strain_check = QCheckBox()
-        self.eye_strain_check.setChecked(self.settings.value("blue_light_filter", False, type=bool))
-        self.eye_strain_check.stateChanged.connect(self.toggle_blue_light_filter)
-        eye_strain_layout.addWidget(self.eye_strain_check)
-        eye_strain_layout.addStretch()
-        display_layout.addLayout(eye_strain_layout)
-        
-        settings_layout.addWidget(display_group)
-        
         image_group = QGroupBox("การจัดการภาพ")
         image_layout = QVBoxLayout(image_group)
         
@@ -649,22 +620,6 @@ class ManualImageSplitter(QMainWindow):
         image_layout.addLayout(format_layout)
         
         settings_layout.addWidget(image_group)
-        
-        # ข้อมูลโปรแกรม
-        about_group = QGroupBox("เกี่ยวกับโปรแกรม")
-        about_layout = QVBoxLayout(about_group)
-        
-        about_text = QLabel(
-            "โปรแกรมแบ่งภาพมังฮวาด้วยตนเอง\n"
-            "เวอร์ชัน 1.0\n\n"
-            "โปรแกรมนี้ช่วยให้คุณแบ่งภาพมังฮวาหรือการ์ตูนแนวตั้งให้เป็นแต่ละภาพได้อย่างง่ายดาย\n"
-            "พัฒนาโดยใช้ Python และ PyQt5"
-        )
-        about_text.setWordWrap(True)
-        about_text.setAlignment(Qt.AlignCenter)
-        about_layout.addWidget(about_text)
-        
-        settings_layout.addWidget(about_group)
         settings_layout.addStretch()
         
         # เพิ่มแท็บเข้าไป
@@ -676,25 +631,9 @@ class ManualImageSplitter(QMainWindow):
     def toggle_theme(self):
         """สลับระหว่างธีมมืดและสว่าง"""
         self.dark_mode = not self.dark_mode
-        self.dark_mode_check.setChecked(self.dark_mode)
-        self.change_theme(self.dark_mode)
-    
-    def change_theme(self, state):
-        """เปลี่ยนธีมตามสถานะของ checkbox"""
-        self.dark_mode = bool(state)
-        self.settings.setValue("dark_mode", self.dark_mode)
-        
         # แจ้งเตือนผู้ใช้ให้รีสตาร์ทแอพพลิเคชัน
         QMessageBox.information(self, "เปลี่ยนธีม", 
                               "การเปลี่ยนธีมจะมีผลเมื่อรีสตาร์ทโปรแกรม")
-    
-    def toggle_blue_light_filter(self, state):
-        """เปิด/ปิดตัวกรองแสงสีฟ้า"""
-        self.settings.setValue("blue_light_filter", bool(state))
-        
-        # แจ้งเตือนผู้ใช้ให้รีสตาร์ทแอพพลิเคชัน
-        QMessageBox.information(self, "ตัวกรองแสงสีฟ้า", 
-                               "การเปลี่ยนแปลงจะมีผลเมื่อรีสตาร์ทโปรแกรม")
 
     def dragEnterEvent(self, event):
         """รองรับการลากไฟล์เข้ามา"""
