@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                            QHBoxLayout, QDialog, QProgressDialog,
                            QProgressBar, QGroupBox, QInputDialog, QLineEdit,
                            QSlider, QComboBox, QTabWidget, QFrame, QStatusBar,
-                           QSplitter, QToolButton, QStyle, QColorDialog)
+                           QSplitter, QStyle, QColorDialog)
 from PySide6.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QIcon, QCursor, QPalette, QBrush, QImageReader
 from PySide6.QtCore import Qt, QPointF, QRectF, QPropertyAnimation, QEasingCurve, QSize, QSettings, Signal
 from PIL import Image, ImageEnhance
@@ -215,16 +215,6 @@ class ManualImageSplitter(QMainWindow):
         
         header_layout.addStretch()
         
-        # ปุ่มธีม
-        self.theme_btn = QToolButton()
-        self.theme_btn.setIcon(self.style().standardIcon(
-            QStyle.SP_DialogHelpButton if self.dark_mode else QStyle.SP_DialogCloseButton
-        ))
-        self.theme_btn.setIconSize(QSize(24, 24))
-        self.theme_btn.setToolTip("สลับธีมมืด/สว่าง")
-        self.theme_btn.clicked.connect(self.toggle_theme)
-        header_layout.addWidget(self.theme_btn)
-        
         main_layout.addLayout(header_layout)
         
         # แท็บสำหรับแบ่งหน้าที่
@@ -416,13 +406,6 @@ class ManualImageSplitter(QMainWindow):
         
         main_layout.addWidget(tab_widget)
     
-    def toggle_theme(self):
-        """สลับระหว่างธีมมืดและสว่าง"""
-        self.dark_mode = not self.dark_mode
-        # แจ้งเตือนผู้ใช้ให้รีสตาร์ทแอพพลิเคชัน
-        QMessageBox.information(self, "เปลี่ยนธีม", 
-                              "การเปลี่ยนธีมจะมีผลเมื่อรีสตาร์ทโปรแกรม")
-
     def reset_files(self):
         """ล้างรายการไฟล์"""
         if not self.image_files:
