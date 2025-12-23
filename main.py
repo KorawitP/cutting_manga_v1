@@ -19,6 +19,9 @@ from io import BytesIO
 import gc
 import time
 
+# นำเข้าไฟล์สไตล์
+from styles import get_application_stylesheet, get_modern_button_style, get_splitter_style, get_tab_widget_style, get_slider_style, get_button_style, get_undo_redo_button_style, get_color_button_style
+
 # ปิดคำเตือน decompression bomb สำหรับภาพขนาดใหญ่
 Image.MAX_IMAGE_PIXELS = None
 
@@ -98,161 +101,8 @@ class ModernStyle:
         # ใช้ชุดสีกับแอพพลิเคชัน
         app.setPalette(palette)
         
-        # สร้างสไตล์ชีทสำหรับองค์ประกอบต่างๆ
-        stylesheet = f"""
-            QMainWindow, QDialog {{
-                background-color: {theme["background"]};
-            }}
-            
-            QWidget {{
-                font-family: 'Segoe UI', Tahoma, Arial;
-                font-size: 10pt;
-                color: {theme["text"]};
-            }}
-            
-            QPushButton {{
-                background-color: {theme["primary"]};
-                color: {theme["card_bg"]};
-                border: none;
-                border-radius: 5px;
-                padding: 8px 16px;
-                font-weight: bold;
-                min-height: 30px;
-            }}
-            
-            QPushButton:hover {{
-                background-color: {theme["primary"] + "cc"};
-            }}
-            
-            QPushButton:pressed {{
-                background-color: {theme["primary"] + "99"};
-            }}
-            
-            QPushButton:disabled {{
-                background-color: {theme["border"]};
-                color: {theme["text_light"]};
-            }}
-            
-            QLabel {{
-                color: {theme["text"]};
-                padding: 2px;
-            }}
-            
-            QGroupBox {{
-                font-weight: bold;
-                border: 1px solid {theme["border"]};
-                border-radius: 8px;
-                margin-top: 12px;
-                padding-top: 10px;
-                background-color: {theme["card_bg"]};
-            }}
-            
-            QGroupBox::title {{
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px;
-                color: {theme["primary"]};
-                background-color: transparent;
-            }}
-            
-            QLineEdit, QComboBox {{
-                background-color: {theme["card_bg"]};
-                border: 1px solid {theme["border"]};
-                border-radius: 5px;
-                padding: 5px;
-                min-height: 25px;
-                selection-background-color: {theme["primary"]};
-            }}
-            
-            QLineEdit:hover, QComboBox:hover {{
-                border: 1px solid {theme["primary"]};
-            }}
-            
-            QComboBox::drop-down {{
-                border: none;
-                width: 20px;
-            }}
-            
-            QProgressBar {{
-                border: 1px solid {theme["border"]};
-                border-radius: 5px;
-                text-align: center;
-                color: {theme["text"]};
-                background-color: {theme["card_bg"]};
-                height: 15px;
-            }}
-            
-            QProgressBar::chunk {{
-                background-color: {theme["secondary"]};
-                width: 10px;
-                border-radius: 2px;
-            }}
-            
-            QTabWidget::pane {{
-                border: 1px solid {theme["border"]};
-                border-radius: 5px;
-                background-color: {theme["card_bg"]};
-            }}
-            
-            QTabBar::tab {{
-                background-color: {theme["background"]};
-                color: {theme["text"]};
-                border: 1px solid {theme["border"]};
-                border-bottom: none;
-                border-top-left-radius: 5px;
-                border-top-right-radius: 5px;
-                padding: 6px 12px;
-                margin-right: 2px;
-            }}
-            
-            QTabBar::tab:selected {{
-                background-color: {theme["primary"]};
-                color: {theme["card_bg"]};
-            }}
-            
-            QTabBar::tab:hover:!selected {{
-                background-color: {theme["hover"]};
-            }}
-            
-            QSlider::groove:horizontal {{
-                border: none;
-                height: 8px;
-                background-color: {theme["border"]};
-                border-radius: 4px;
-            }}
-            
-            QSlider::handle:horizontal {{
-                background-color: {theme["primary"]};
-                border: none;
-                width: 18px;
-                height: 18px;
-                margin: -5px 0;
-                border-radius: 9px;
-            }}
-            
-            QSlider::handle:horizontal:hover {{
-                background-color: {theme["accent"]};
-            }}
-            
-            QStatusBar {{
-                background-color: {theme["card_bg"]};
-                color: {theme["text_light"]};
-                border-top: 1px solid {theme["border"]};
-            }}
-            
-            QSplitter::handle {{
-                background-color: {theme["border"]};
-            }}
-            
-            QSplitter::handle:horizontal {{
-                width: 1px;
-            }}
-            
-            QSplitter::handle:vertical {{
-                height: 1px;
-            }}
-        """
-        
+        # ใช้ stylesheet จากไฟล์ styles.py
+        stylesheet = get_application_stylesheet(theme)
         app.setStyleSheet(stylesheet)
 
 class ModernButton(QPushButton):
@@ -269,22 +119,7 @@ class ModernButton(QPushButton):
             self.setIconSize(QSize(20, 20))
         
         if color:
-            self.setStyleSheet(f"""
-                QPushButton {{
-                    background-color: {color};
-                    color: white;
-                    border: none;
-                    border-radius: 5px;
-                    padding: 8px 16px;
-                    font-weight: bold;
-                }}
-                QPushButton:hover {{
-                    background-color: {color}cc;
-                }}
-                QPushButton:pressed {{
-                    background-color: {color}99;
-                }}
-            """)
+            self.setStyleSheet(get_modern_button_style(color))
     
     def enterEvent(self, event):
         self.setCursor(QCursor(Qt.PointingHandCursor))
@@ -1719,14 +1554,7 @@ class ManualSplitDialog(QDialog):
         splitter = QSplitter(Qt.Vertical)
         splitter.setHandleWidth(3)  # handle บางลงเพื่อดูเรียบร้อย
         splitter.setChildrenCollapsible(False)
-        splitter.setStyleSheet("""
-            QSplitter::handle {
-                background-color: #dddddd;
-            }
-            QSplitter::handle:hover {
-                background-color: #2196F3;
-            }
-        """)
+        splitter.setStyleSheet(get_splitter_style())
         
         # --- ส่วนแสดงผลภาพ (ตั้งให้อยู่ด้านบน) ---
         canvas_container = QWidget()
@@ -1764,38 +1592,14 @@ class ManualSplitDialog(QDialog):
         self.undo_btn.setToolTip("ย้อนกลับ (Undo)")
         self.undo_btn.setFixedSize(28, 28)
         self.undo_btn.clicked.connect(self.undo_action)
-        self.undo_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #607D8B;
-                color: white;
-                border: none;
-                border-radius: 3px;
-                font-size: 16px;
-                font-weight: bold;
-            }
-            QPushButton:hover { background-color: #546E7A; }
-            QPushButton:pressed { background-color: #455A64; }
-            QPushButton:disabled { background-color: #B0BEC5; }
-        """)
+        self.undo_btn.setStyleSheet(get_undo_redo_button_style())
         top_bar_layout.addWidget(self.undo_btn)
         
         self.redo_btn = QPushButton("↪")
         self.redo_btn.setToolTip("ทำซ้ำ (Redo)")
         self.redo_btn.setFixedSize(28, 28)
         self.redo_btn.clicked.connect(self.redo_action)
-        self.redo_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #607D8B;
-                color: white;
-                border: none;
-                border-radius: 3px;
-                font-size: 16px;
-                font-weight: bold;
-            }
-            QPushButton:hover { background-color: #546E7A; }
-            QPushButton:pressed { background-color: #455A64; }
-            QPushButton:disabled { background-color: #B0BEC5; }
-        """)
+        self.redo_btn.setStyleSheet(get_undo_redo_button_style())
         top_bar_layout.addWidget(self.redo_btn)
         
         controls_layout.addWidget(top_bar)
@@ -1803,34 +1607,7 @@ class ManualSplitDialog(QDialog):
         # แท็บควบคุม - ใช้ QTabWidget ที่มี style แบบ modern
         tabs = QTabWidget()
         tabs.setTabPosition(QTabWidget.North)
-        tabs.setStyleSheet("""
-            QTabWidget::pane {
-                border: 1px solid #dddddd;
-                border-radius: 3px;
-                background-color: #ffffff;
-            }
-            QTabWidget::tab-bar {
-                left: 5px;
-            }
-            QTabBar::tab {
-                background-color: #e0e0e0;
-                color: #444444;
-                padding: 6px 15px;
-                border-top-left-radius: 3px;
-                border-top-right-radius: 3px;
-                margin-right: 2px;
-                margin-bottom: -1px;
-            }
-            QTabBar::tab:selected {
-                background-color: #ffffff;
-                border-bottom: 2px solid #2196F3;
-                color: #2196F3;
-                font-weight: bold;
-            }
-            QTabBar::tab:hover:!selected {
-                background-color: #eeeeee;
-            }
-        """)
+        tabs.setStyleSheet(get_tab_widget_style())
         
         # --- แท็บ 1: ตั้งค่าเส้น ---
         line_tab = QWidget()
@@ -1873,19 +1650,7 @@ class ManualSplitDialog(QDialog):
         self.h_thickness_slider.setValue(self.h_line_thickness)
         self.h_thickness_slider.setTickPosition(QSlider.TicksBelow)
         self.h_thickness_slider.setTickInterval(2)
-        self.h_thickness_slider.setStyleSheet("""
-            QSlider::groove:horizontal {
-                height: 4px;
-                background: #ddd;
-                border-radius: 2px;
-            }
-            QSlider::handle:horizontal {
-                background: #2196F3;
-                width: 12px;
-                margin: -4px 0;
-                border-radius: 6px;
-            }
-        """)
+        self.h_thickness_slider.setStyleSheet(get_slider_style())
         self.h_thickness_slider.valueChanged.connect(self.change_h_thickness)
         line_layout.addWidget(self.h_thickness_slider)
         
@@ -1904,19 +1669,7 @@ class ManualSplitDialog(QDialog):
         self.v_thickness_slider.setValue(self.v_line_thickness)
         self.v_thickness_slider.setTickPosition(QSlider.TicksBelow)
         self.v_thickness_slider.setTickInterval(2)
-        self.v_thickness_slider.setStyleSheet("""
-            QSlider::groove:horizontal {
-                height: 4px;
-                background: #ddd;
-                border-radius: 2px;
-            }
-            QSlider::handle:horizontal {
-                background: #2196F3;
-                width: 12px;
-                margin: -4px 0;
-                border-radius: 6px;
-            }
-        """)
+        self.v_thickness_slider.setStyleSheet(get_slider_style())
         self.v_thickness_slider.valueChanged.connect(self.change_v_thickness)
         line_layout.addWidget(self.v_thickness_slider)
         
@@ -1928,17 +1681,7 @@ class ManualSplitDialog(QDialog):
         self.apply_line_settings_btn = QPushButton("ปรับใช้")
         self.apply_line_settings_btn.setCursor(Qt.PointingHandCursor)
         self.apply_line_settings_btn.clicked.connect(self.apply_line_settings)
-        self.apply_line_settings_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                padding: 3px 10px;
-                border: none;
-                border-radius: 3px;
-            }
-            QPushButton:hover { background-color: #45a049; }
-            QPushButton:pressed { background-color: #3d8b40; }
-        """)
+        self.apply_line_settings_btn.setStyleSheet(get_button_style("#4CAF50", "#45a049", "#3d8b40"))
         line_layout.addWidget(self.apply_line_settings_btn)
         
         tabs.addTab(line_tab, "ตั้งค่าเส้น")
@@ -1961,20 +1704,7 @@ class ManualSplitDialog(QDialog):
         bg_layout.addWidget(self.bg_color_btn)
         
         # ปุ่มสีพื้นหลังสำเร็จรูป
-        color_btn_style = """
-            QPushButton {
-                background-color: #f0f0f0;
-                color: #444444;
-                padding: 3px 8px;
-                border: 1px solid #dddddd;
-                border-radius: 3px;
-            }
-            QPushButton:hover { 
-                background-color: #e0e0e0;
-                border: 1px solid #bbbbbb;
-            }
-            QPushButton:pressed { background-color: #d0d0d0; }
-        """
+        color_btn_style = get_color_button_style()
         
         self.default_bg_btn = QPushButton("สีเริ่มต้น")
         self.default_bg_btn.setCursor(Qt.PointingHandCursor)
@@ -2015,23 +1745,7 @@ class ManualSplitDialog(QDialog):
         self.resize_slider.setValue(100)
         self.resize_slider.setTickPosition(QSlider.TicksBelow)
         self.resize_slider.setTickInterval(10)
-        self.resize_slider.setStyleSheet("""
-            QSlider::groove:horizontal {
-                height: 4px;
-                background: #dddddd;
-                border-radius: 2px;
-            }
-            QSlider::handle:horizontal {
-                background: #2196F3;
-                width: 12px;
-                height: 12px;
-                margin: -4px 0;
-                border-radius: 6px;
-            }
-            QSlider::handle:horizontal:hover {
-                background: #1976D2;
-            }
-        """)
+        self.resize_slider.setStyleSheet(get_slider_style())
         resize_layout.addWidget(self.resize_slider)
         
         self.resize_value = QLabel("100%")
@@ -2045,34 +1759,14 @@ class ManualSplitDialog(QDialog):
         self.apply_resize_btn = QPushButton("ปรับขนาด")
         self.apply_resize_btn.setCursor(Qt.PointingHandCursor)
         self.apply_resize_btn.clicked.connect(self.resize_image)
-        self.apply_resize_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #2196F3;
-                color: white;
-                padding: 3px 10px;
-                border: none;
-                border-radius: 3px;
-            }
-            QPushButton:hover { background-color: #1976D2; }
-            QPushButton:pressed { background-color: #0D47A1; }
-        """)
+        self.apply_resize_btn.setStyleSheet(get_button_style("#2196F3", "#1976D2", "#0D47A1"))
         resize_layout.addWidget(self.apply_resize_btn)
         
         # ปุ่มพอดีกับหน้าจอ (fit to screen)
         self.fit_screen_btn = QPushButton("พอดีจอ")
         self.fit_screen_btn.setCursor(Qt.PointingHandCursor)
         self.fit_screen_btn.clicked.connect(self.fit_to_screen)
-        self.fit_screen_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #FF9800;
-                color: white;
-                padding: 3px 10px;
-                border: none;
-                border-radius: 3px;
-            }
-            QPushButton:hover { background-color: #F57C00; }
-            QPushButton:pressed { background-color: #E65100; }
-        """)
+        self.fit_screen_btn.setStyleSheet(get_button_style("#FF9800", "#F57C00", "#E65100"))
         resize_layout.addWidget(self.fit_screen_btn)
         
         resize_layout.addStretch()
@@ -2089,33 +1783,13 @@ class ManualSplitDialog(QDialog):
         cancel_btn = QPushButton("ยกเลิก")
         cancel_btn.setCursor(Qt.PointingHandCursor)
         cancel_btn.clicked.connect(self.reject)
-        cancel_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #e0e0e0;
-                padding: 8px 16px;
-                border: none;
-                border-radius: 3px;
-            }
-            QPushButton:hover { background-color: #d0d0d0; }
-            QPushButton:pressed { background-color: #c0c0c0; }
-        """)
+        cancel_btn.setStyleSheet(get_button_style("#e0e0e0", "#d0d0d0", "#c0c0c0"))
         button_layout.addWidget(cancel_btn)
         
         ok_btn = QPushButton("ตกลง")
         ok_btn.setCursor(Qt.PointingHandCursor)
         ok_btn.clicked.connect(self.accept)
-        ok_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #2196F3;
-                color: white;
-                padding: 8px 16px;
-                border: none;
-                border-radius: 3px;
-                font-weight: bold;
-            }
-            QPushButton:hover { background-color: #1976D2; }
-            QPushButton:pressed { background-color: #0D47A1; }
-        """)
+        ok_btn.setStyleSheet(get_button_style("#2196F3", "#1976D2", "#0D47A1"))
         button_layout.addWidget(ok_btn)
         
         controls_layout.addLayout(button_layout)
