@@ -451,22 +451,43 @@ class ManualImageSplitter(QMainWindow):
         main_tab = QWidget()
         main_tab_layout = QVBoxLayout(main_tab)
         
-        # ปุ่มควบคุม
-        button_layout = QHBoxLayout()
+        # ส่วนการนำเข้าไฟล์
+        import_group = QGroupBox("การนำเข้าไฟล์ภาพ")
+        import_layout = QVBoxLayout(import_group)
         
-        self.select_btn = ModernButton("เลือกไฟล์ภาพ", self, 
-                                     self.style().standardIcon(QStyle.SP_FileDialogStart),
-                                     self.theme["primary"])
-        self.select_btn.clicked.connect(self.select_files)
-        button_layout.addWidget(self.select_btn)
+        # ช่องใส่พาธไฟล์/โฟลเดอร์
+        path_input_layout = QHBoxLayout()
+        path_input_label = QLabel("พาธไฟล์/โฟลเดอร์:")
+        path_input_layout.addWidget(path_input_label)
         
-        self.reset_btn = ModernButton("รีเซตรายการ", self,
+        self.path_input_edit = QLineEdit()
+        self.path_input_edit.setPlaceholderText("ใส่พาธไฟล์หรือโฟลเดอร์ที่มีภาพ...")
+        path_input_layout.addWidget(self.path_input_edit)
+        
+        self.browse_path_btn = ModernButton("...", self,
+                                          self.style().standardIcon(QStyle.SP_DirOpenIcon),
+                                          self.theme["secondary"])
+        self.browse_path_btn.setMaximumWidth(40)
+        self.browse_path_btn.clicked.connect(self.browse_input_path)
+        path_input_layout.addWidget(self.browse_path_btn)
+        
+        self.load_path_btn = ModernButton("โหลด", self,
+                                        self.style().standardIcon(QStyle.SP_DialogApplyButton),
+                                        self.theme["secondary"])
+        self.load_path_btn.setMaximumWidth(60)
+        self.load_path_btn.clicked.connect(self.load_from_path)
+        path_input_layout.addWidget(self.load_path_btn)
+        
+        self.reset_btn = ModernButton("รีเซต", self,
                                     self.style().standardIcon(QStyle.SP_DialogResetButton),
                                     self.theme["error"])
+        self.reset_btn.setMaximumWidth(60)
         self.reset_btn.clicked.connect(self.reset_files)
-        button_layout.addWidget(self.reset_btn)
+        path_input_layout.addWidget(self.reset_btn)
         
-        main_tab_layout.addLayout(button_layout)
+        import_layout.addLayout(path_input_layout)
+        
+        main_tab_layout.addWidget(import_group)
         
         # แสดงจำนวนไฟล์ที่เลือก
         file_info_group = QGroupBox("รายละเอียดไฟล์")
@@ -619,27 +640,6 @@ class ManualImageSplitter(QMainWindow):
         QMessageBox.information(self, "เปลี่ยนธีม", 
                               "การเปลี่ยนธีมจะมีผลเมื่อรีสตาร์ทโปรแกรม")
 
-    def select_files(self):
-        """เลือกไฟล์ภาพผ่าน File Dialog"""
-        files, _ = QFileDialog.getOpenFileNames(
-            self,
-            "เลือกไฟล์ภาพ",
-            "",
-            "Image Files (*.png *.jpg *.jpeg *.webp)"
-        )
-        
-        if files:
-            self.image_files.extend(files)
-            self.update_file_label()
-            self.log_message(f"เลือกไฟล์: {len(files)} ไฟล์")
-            self.statusBar.showMessage(f"เลือก {len(files)} ไฟล์สำเร็จ", 3000)
-            
-            # ตั้งค่าเริ่มต้นสำหรับโฟลเดอร์ปลายทาง
-            if not self.output_path_edit.text():
-                default_folder = os.path.dirname(files[0])
-                self.output_path_edit.setText(default_folder)
-                self.log_message(f"ตั้งค่าโฟลเดอร์ปลายทางเริ่มต้น: {default_folder}")
-
     def reset_files(self):
         """ล้างรายการไฟล์"""
         if not self.image_files:
@@ -656,6 +656,7 @@ class ManualImageSplitter(QMainWindow):
         if confirm == QMessageBox.Yes:
             self.image_files = []
             self.update_file_label()
+            # ไม่ล้างช่องพาธการนำเข้า - เก็บไว้ให้ผู้ใช้
             # ไม่ล้างช่องข้อมูลการบันทึก - เก็บไว้ให้ผู้ใช้
             self.log_message("รีเซตรายการไฟล์")
             self.statusBar.showMessage("รีเซตรายการไฟล์แล้ว", 3000)
@@ -689,7 +690,137 @@ class ManualImageSplitter(QMainWindow):
         else:
             self.file_label.setText("ยังไม่ได้เลือกไฟล์")
 
+    def browse_input_path(self):
+        """เลือกไฟล์หรือโฟลเดอร์สำหรับนำเข้า"""
+        # ให้ผู้ใช้เลือกว่าต้องการเลือกไฟล์หรือโฟลเดอร์
+        msg = QMessageBox(self)
+        msg.setWindowTitle("เลือกประเภทการนำเข้า")
+        msg.setText("คุณต้องการนำเข้าจากไฟล์หรือโฟลเดอร์?")
+        msg.setInformativeText(
+            "📁 โฟลเดอร์: โหลดภาพทั้งหมดในโฟลเดอร์\n"
+            "📄 ไฟล์: เลือกไฟล์ภาพเฉพาะที่ต้องการ"
+        )
+        
+        folder_btn = msg.addButton("📁 โฟลเดอร์", QMessageBox.YesRole)
+        file_btn = msg.addButton("📄 ไฟล์", QMessageBox.NoRole)
+        cancel_btn = msg.addButton("ยกเลิก", QMessageBox.RejectRole)
+        
+        msg.setDefaultButton(folder_btn)
+        msg.exec()
+        
+        clicked_button = msg.clickedButton()
+        
+        if clicked_button == folder_btn:
+            # เลือกโฟลเดอร์
+            folder = QFileDialog.getExistingDirectory(
+                self,
+                "เลือกโฟลเดอร์ที่มีไฟล์ภาพ",
+                self.path_input_edit.text() or ""
+            )
+            if folder:
+                self.path_input_edit.setText(folder)
+        elif clicked_button == file_btn:
+            # เลือกไฟล์
+            files, _ = QFileDialog.getOpenFileNames(
+                self,
+                "เลือกไฟล์ภาพ",
+                self.path_input_edit.text() or "",
+                "Image Files (*.png *.jpg *.jpeg *.webp *.bmp *.gif *.tiff)"
+            )
+            if files:
+                # ใส่พาธไฟล์แรกในช่อง
+                self.path_input_edit.setText(files[0])
+
+    def load_from_path(self):
+        """โหลดไฟล์จากพาธที่ใส่"""
+        path = self.path_input_edit.text().strip()
+        
+        if not path:
+            QMessageBox.warning(self, "แจ้งเตือน", "กรุณาใส่พาธไฟล์หรือโฟลเดอร์")
+            return
+        
+        if not os.path.exists(path):
+            QMessageBox.warning(self, "แจ้งเตือน", "ไม่พบไฟล์หรือโฟลเดอร์ที่ระบุ")
+            return
+        
+        try:
+            new_files = []
+            
+            if os.path.isfile(path):
+                # ถ้าเป็นไฟล์เดี่ยว
+                if self.is_image_file(path):
+                    new_files.append(path)
+                    # หาไฟล์ภาพอื่นในโฟลเดอร์เดียวกัน
+                    folder = os.path.dirname(path)
+                    for file in os.listdir(folder):
+                        file_path = os.path.join(folder, file)
+                        if file_path != path and self.is_image_file(file_path):
+                            new_files.append(file_path)
+                else:
+                    QMessageBox.warning(self, "แจ้งเตือน", "ไฟล์ที่ระบุไม่ใช่ไฟล์ภาพ")
+                    return
+                    
+            elif os.path.isdir(path):
+                # ถ้าเป็นโฟลเดอร์
+                for file in os.listdir(path):
+                    file_path = os.path.join(path, file)
+                    if self.is_image_file(file_path):
+                        new_files.append(file_path)
+                
+                if not new_files:
+                    QMessageBox.warning(self, "แจ้งเตือน", "ไม่พบไฟล์ภาพในโฟลเดอร์ที่ระบุ")
+                    return
+            
+            # เรียงลำดับไฟล์
+            new_files.sort()
+            
+            # เพิ่มไฟล์ใหม่เข้าไปในรายการ
+            added_count = 0
+            for file_path in new_files:
+                if file_path not in self.image_files:
+                    self.image_files.append(file_path)
+                    added_count += 1
+            
+            if added_count > 0:
+                self.update_file_label()
+                self.log_message(f"โหลดไฟล์จากพาธ: {added_count} ไฟล์")
+                self.statusBar.showMessage(f"โหลด {added_count} ไฟล์สำเร็จ", 3000)
+                
+                # ตั้งค่าเริ่มต้นสำหรับโฟลเดอร์ปลายทาง
+                if not self.output_path_edit.text():
+                    if os.path.isfile(path):
+                        default_folder = os.path.dirname(path)
+                    else:
+                        default_folder = path
+                    self.output_path_edit.setText(default_folder)
+                    self.log_message(f"ตั้งค่าโฟลเดอร์ปลายทางเริ่มต้น: {default_folder}")
+            else:
+                QMessageBox.information(self, "แจ้งเตือน", "ไฟล์ทั้งหมดมีอยู่ในรายการแล้ว")
+                
+        except Exception as e:
+            self.log_message(f"เกิดข้อผิดพลาดในการโหลดจากพาธ: {str(e)}")
+            QMessageBox.critical(self, "ผิดพลาด", f"เกิดข้อผิดพลาด: {str(e)}")
+
+    def is_image_file(self, file_path):
+        """ตรวจสอบว่าไฟล์เป็นไฟล์ภาพหรือไม่"""
+        if not os.path.isfile(file_path):
+            return False
+        
+        valid_extensions = {'.png', '.jpg', '.jpeg', '.webp', '.bmp', '.gif', '.tiff'}
+        file_ext = os.path.splitext(file_path)[1].lower()
+        return file_ext in valid_extensions
+
     def browse_output_folder(self):
+        """เลือกโฟลเดอร์ปลายทางสำหรับบันทึกไฟล์"""
+        folder = QFileDialog.getExistingDirectory(
+            self,
+            "เลือกโฟลเดอร์สำหรับบันทึกภาพที่ตัดแล้ว",
+            self.output_path_edit.text() or (os.path.dirname(self.image_files[0]) if self.image_files else "")
+        )
+        
+        if folder:
+            self.output_path_edit.setText(folder)
+            self.log_message(f"เลือกโฟลเดอร์ปลายทาง: {folder}")
         """เลือกโฟลเดอร์ปลายทางสำหรับบันทึกไฟล์"""
         folder = QFileDialog.getExistingDirectory(
             self,
