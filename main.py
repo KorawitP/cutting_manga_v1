@@ -5,11 +5,11 @@ import random
 import shutil
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                            QPushButton, QFileDialog, QLabel, QMessageBox,
-                           QHBoxLayout, QDialog, QScrollArea, QProgressDialog,
-                           QProgressBar, QGroupBox, QSpinBox, QInputDialog, QLineEdit,
-                           QSlider, QComboBox, QCheckBox, QTabWidget, QFrame, QStatusBar,
+                           QHBoxLayout, QDialog, QProgressDialog,
+                           QProgressBar, QGroupBox, QInputDialog, QLineEdit,
+                           QSlider, QComboBox, QTabWidget, QFrame, QStatusBar,
                            QSplitter, QToolButton, QStyle, QColorDialog)
-from PySide6.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QFont, QIcon, QCursor, QPalette, QBrush, QImageReader
+from PySide6.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QIcon, QCursor, QPalette, QBrush, QImageReader
 from PySide6.QtCore import Qt, QPointF, QRectF, QPropertyAnimation, QEasingCurve, QSize, QSettings, Signal
 from PIL import Image, ImageEnhance
 import numpy as np
@@ -155,7 +155,7 @@ class ModernStyle:
                 background-color: transparent;
             }}
             
-            QSpinBox, QLineEdit, QComboBox {{
+            QLineEdit, QComboBox {{
                 background-color: {theme["card_bg"]};
                 border: 1px solid {theme["border"]};
                 border-radius: 5px;
@@ -164,7 +164,7 @@ class ModernStyle:
                 selection-background-color: {theme["primary"]};
             }}
             
-            QSpinBox:hover, QLineEdit:hover, QComboBox:hover {{
+            QLineEdit:hover, QComboBox:hover {{
                 border: 1px solid {theme["primary"]};
             }}
             
@@ -186,31 +186,6 @@ class ModernStyle:
                 background-color: {theme["secondary"]};
                 width: 10px;
                 border-radius: 2px;
-            }}
-            
-            QScrollBar:vertical {{
-                border: none;
-                background-color: {theme["background"]};
-                width: 12px;
-                margin: 0px;
-            }}
-            
-            QScrollBar::handle:vertical {{
-                background-color: {theme["border"]};
-                min-height: 30px;
-                border-radius: 6px;
-            }}
-            
-            QScrollBar::handle:vertical:hover {{
-                background-color: {theme["primary"]};
-            }}
-            
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
-                height: 0px;
-            }}
-            
-            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
-                background: none;
             }}
             
             QTabWidget::pane {{
@@ -239,24 +214,6 @@ class ModernStyle:
                 background-color: {theme["hover"]};
             }}
             
-            QCheckBox {{
-                spacing: 5px;
-            }}
-            
-            QCheckBox::indicator {{
-                width: 18px;
-                height: 18px;
-                border: 1px solid {theme["border"]};
-                border-radius: 3px;
-                background-color: {theme["card_bg"]};
-            }}
-            
-            QCheckBox::indicator:checked {{
-                background-color: {theme["primary"]};
-                border: none;
-                image: url(:/images/check.png);
-            }}
-            
             QSlider::groove:horizontal {{
                 border: none;
                 height: 8px;
@@ -275,15 +232,6 @@ class ModernStyle:
             
             QSlider::handle:horizontal:hover {{
                 background-color: {theme["accent"]};
-            }}
-            
-            QToolTip {{
-                background-color: {theme["card_bg"]};
-                color: {theme["text"]};
-                border: 1px solid {theme["border"]};
-                border-radius: 4px;
-                padding: 5px;
-                opacity: 200;
             }}
             
             QStatusBar {{
