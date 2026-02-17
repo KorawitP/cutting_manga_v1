@@ -217,13 +217,6 @@ class ManualImageSplitter(QMainWindow):
         
         main_layout.addLayout(header_layout)
         
-        # แท็บสำหรับแบ่งหน้าที่
-        tab_widget = QTabWidget()
-        
-        # แท็บหลัก
-        main_tab = QWidget()
-        main_tab_layout = QVBoxLayout(main_tab)
-        
         # ส่วนการนำเข้าไฟล์
         import_group = QGroupBox("การนำเข้าไฟล์ภาพ")
         import_layout = QHBoxLayout(import_group)
@@ -245,7 +238,7 @@ class ManualImageSplitter(QMainWindow):
         self.reset_btn.clicked.connect(self.reset_files)
         import_layout.addWidget(self.reset_btn, 1)  # stretch factor = 1 (ครึ่งหนึ่ง)
         
-        main_tab_layout.addWidget(import_group)
+        main_layout.addWidget(import_group)
         
         # แสดงจำนวนไฟล์ที่เลือก
         file_info_group = QGroupBox("รายละเอียดไฟล์")
@@ -255,7 +248,7 @@ class ManualImageSplitter(QMainWindow):
         self.file_label.setAlignment(Qt.AlignCenter)
         file_info_layout.addWidget(self.file_label)
         
-        main_tab_layout.addWidget(file_info_group)
+        main_layout.addWidget(file_info_group)
         
         # เพิ่มส่วนการตั้งค่าการบันทึก
         save_settings_group = QGroupBox("การตั้งค่าการบันทึก")
@@ -290,7 +283,7 @@ class ManualImageSplitter(QMainWindow):
         
         save_settings_layout.addLayout(episode_layout)
         
-        main_tab_layout.addWidget(save_settings_group)
+        main_layout.addWidget(save_settings_group)
         
         # Progress Bar
         progress_group = QGroupBox("ความคืบหน้า")
@@ -302,7 +295,7 @@ class ManualImageSplitter(QMainWindow):
         self.progress_bar = QProgressBar()
         progress_layout.addWidget(self.progress_bar)
         
-        main_tab_layout.addWidget(progress_group)
+        main_layout.addWidget(progress_group)
         
         # ปุ่มเริ่มแบ่งภาพ
         start_layout = QHBoxLayout()
@@ -334,62 +327,10 @@ class ManualImageSplitter(QMainWindow):
         start_layout.addWidget(self.split_btn)
         
         start_layout.addStretch()
-        main_tab_layout.addLayout(start_layout)
+        main_layout.addLayout(start_layout)
         
         # เพิ่มสเปซเพื่อให้มีพื้นที่ว่างด้านล่าง
-        main_tab_layout.addStretch()
-        
-        # แท็บการตั้งค่า
-        settings_tab = QWidget()
-        settings_layout = QVBoxLayout(settings_tab)
-        
-        image_group = QGroupBox("การจัดการภาพ")
-        image_layout = QVBoxLayout(image_group)
-        
-        # ตั้งค่าความละเอียดการบันทึกภาพ
-        quality_layout = QHBoxLayout()
-        quality_label = QLabel("คุณภาพการบันทึก:")
-        quality_layout.addWidget(quality_label)
-        
-        self.quality_slider = QSlider(Qt.Horizontal)
-        self.quality_slider.setMinimum(30)
-        self.quality_slider.setMaximum(100)
-        self.quality_slider.setValue(self.settings.value("image_quality", 90, type=int))
-        self.quality_slider.setTickPosition(QSlider.TicksBelow)
-        self.quality_slider.setTickInterval(10)
-        quality_layout.addWidget(self.quality_slider)
-        
-        self.quality_value = QLabel(f"{self.quality_slider.value()}%")
-        quality_layout.addWidget(self.quality_value)
-        
-        self.quality_slider.valueChanged.connect(lambda v: self.quality_value.setText(f"{v}%"))
-        self.quality_slider.sliderReleased.connect(lambda: self.settings.setValue("image_quality", self.quality_slider.value()))
-        
-        image_layout.addLayout(quality_layout)
-        
-        # รูปแบบการบันทึกไฟล์
-        format_layout = QHBoxLayout()
-        format_label = QLabel("รูปแบบไฟล์:")
-        format_layout.addWidget(format_label)
-        
-        self.format_combo = QComboBox()
-        self.format_combo.addItems(["PNG", "JPEG", "WebP"])
-        current_format = self.settings.value("image_format", "PNG")
-        self.format_combo.setCurrentText(current_format)
-        self.format_combo.currentTextChanged.connect(lambda t: self.settings.setValue("image_format", t))
-        format_layout.addWidget(self.format_combo)
-        format_layout.addStretch()
-        
-        image_layout.addLayout(format_layout)
-        
-        settings_layout.addWidget(image_group)
-        settings_layout.addStretch()
-        
-        # เพิ่มแท็บเข้าไป
-        tab_widget.addTab(main_tab, "หน้าหลัก")
-        tab_widget.addTab(settings_tab, "ตั้งค่า")
-        
-        main_layout.addWidget(tab_widget)
+        main_layout.addStretch()
     
     def reset_files(self):
         """ล้างรายการไฟล์"""
@@ -780,18 +721,22 @@ class ManualImageSplitter(QMainWindow):
                 # สร้างชื่อไฟล์
                 if episode_num:
                     if v_breakpoints:
-                        filename = f"{episode_num}_{img_info['vert_idx']}.png"
+                        filename = f"{episode_num}_{img_info['vert_idx']}.jpg"
                     else:
-                        filename = f"{episode_num}_{img_info['vert_idx']}.png"
+                        filename = f"{episode_num}_{img_info['vert_idx']}.jpg"
                 else:
                     folder_name = os.path.splitext(os.path.basename(self.image_files[0]))[0]
                     if v_breakpoints:
-                        filename = f"{folder_name}_{img_info['vert_idx']}.png"
+                        filename = f"{folder_name}_{img_info['vert_idx']}.jpg"
                     else:
-                        filename = f"{folder_name}_{img_info['vert_idx']}.png"
+                        filename = f"{folder_name}_{img_info['vert_idx']}.jpg"
                 
                 filepath = os.path.join(output_dir, filename)
-                img_info["image"].save(filepath, "PNG")
+                # แปลงเป็น RGB ก่อนบันทึกเป็น JPEG (เผื่อภาพต้นฉบับเป็น RGBA)
+                save_img = img_info["image"]
+                if save_img.mode in ('RGBA', 'LA', 'P'):
+                    save_img = save_img.convert('RGB')
+                save_img.save(filepath, "JPEG", quality=90)
                 
                 # เก็บข้อมูลสำหรับใช้ในการสร้าง Dataset
                 processed_images.append({
