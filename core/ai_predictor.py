@@ -1,10 +1,6 @@
 import os
 import cv2
 import numpy as np
-from PIL import Image
-from scipy.signal import find_peaks
-
-# พยายามตรวจสอบการมีอยู่ของ PyTorch
 try:
     import importlib.util
     torch_spec = importlib.util.find_spec("torch")
@@ -12,10 +8,13 @@ try:
 except ImportError:
     TORCH_AVAILABLE = False
 
+from PIL import Image
+from scipy.signal import find_peaks
+
 class AIPredictor:
     def __init__(self, weights_path):
         self.weights_path = weights_path
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu") if TORCH_AVAILABLE else None
+        self.device = None
         self.model = None
         self.is_loaded = False
         
@@ -29,16 +28,13 @@ class AIPredictor:
         self.test_transforms = None
 
     def _init_torch(self):
-        """โหลด PyTorch เฉพาะตอนที่ใช้งานจริงๆ เพื่อป้องกัน App Crash ตอนเปิด"""
+        """โหลดตัวแปร device และ transforms"""
         if not TORCH_AVAILABLE:
             return False
             
         try:
-            global torch, nn, transforms, models
             import torch
-            import torch.nn as nn
-            from torchvision import transforms, models
-            
+            from torchvision import transforms
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             self.test_transforms = transforms.Compose([
                 transforms.ToPILImage(),
@@ -48,7 +44,7 @@ class AIPredictor:
             ])
             return True
         except Exception as e:
-            print(f"Error loading PyTorch: {e}")
+            print(f"Error initializing PyTorch environment: {e}")
             return False
 
     def load_model(self):
@@ -60,6 +56,9 @@ class AIPredictor:
             return False, f"ไม่พบไฟล์โมเดลที่: {self.weights_path}"
             
         try:
+            import torch
+            import torch.nn as nn
+            from torchvision import models
             self.model = models.efficientnet_b0(weights=None)
             in_features = self.model.classifier[1].in_features
             # 2 Classes: 0_unsafe, 1_safe
@@ -111,35 +110,37 @@ class AIPredictor:
             step_count = 0
             
             # รูดแว่นขยายทีละ Batch ส่งการ์ดจอ
-            with torch.no_grad():
-                for start_y in y_starts:
-                    window = img[start_y:start_y + self.slice_height, :]
-                    
-                    if window.shape[1] != self.target_width:
-                        window = cv2.resize(window, (self.target_width, self.slice_height))
+            if TORCH_AVAILABLE: # ป้องกันตัวแปร torch แดง
+                import torch
+                with torch.no_grad():
+                    for start_y in y_starts:
+                        window = img[start_y:start_y + self.slice_height, :]
                         
-                    window_t = self.test_transforms(window)
-                    batch_tensors.append(window_t)
-                    batch_y.append(start_y)
-                    
-                    step_count += 1
-                    # อัพเดท Progress Bar 0-80% ระหว่างสแกนภาพ
-                    if progress_callback and step_count % batch_size == 0:
-                        progress_callback(int((step_count / total_steps) * 80))
-                    
-                    if len(batch_tensors) == batch_size or start_y == y_starts[-1]:
-                        batch_stack = torch.stack(batch_tensors).to(self.device)
-                        outputs = self.model(batch_stack)
-                        probs = torch.softmax(outputs, dim=1)
-                        
-                        # ใช้ Class 1 = Safe Score
-                        safe_probs = probs[:, 1].cpu().numpy()
-                        
-                        for i, p in enumerate(safe_probs):
-                            scores.append((batch_y[i] + (self.slice_height // 2), p))
+                        if window.shape[1] != self.target_width:
+                            window = cv2.resize(window, (self.target_width, self.slice_height))
                             
-                        batch_tensors = []
-                        batch_y = []
+                        window_t = self.test_transforms(window)
+                        batch_tensors.append(window_t)
+                        batch_y.append(start_y)
+                        
+                        step_count += 1
+                        # อัพเดท Progress Bar 0-80% ระหว่างสแกนภาพ
+                        if progress_callback and step_count % batch_size == 0:
+                            progress_callback(int((step_count / total_steps) * 80))
+                        
+                        if len(batch_tensors) == batch_size or start_y == y_starts[-1]:
+                            batch_stack = torch.stack(batch_tensors).to(self.device)
+                            outputs = self.model(batch_stack)
+                            probs = torch.softmax(outputs, dim=1)
+                            
+                            # ใช้ Class 1 = Safe Score
+                            safe_probs = probs[:, 1].cpu().numpy()
+                            
+                            for i, p in enumerate(safe_probs):
+                                scores.append((batch_y[i] + (self.slice_height // 2), p))
+                                
+                            batch_tensors = []
+                            batch_y = []
                         
             if progress_callback:
                 progress_callback(90)

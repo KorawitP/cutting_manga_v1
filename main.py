@@ -1,4 +1,11 @@
 import sys
+
+# โหลด PyTorch ก่อน PySide6 เพื่อแก้ปัญหา DLL Conflict บน Windows
+try:
+    import torch
+except Exception:
+    pass
+
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QImageReader
 from ui.main_window import ManualImageSplitter
