@@ -19,6 +19,7 @@ from PySide6.QtCore import Qt, QSettings
 
 from ui.ui_components import ModernStyle, ModernButton
 from ui.split_dialog import ManualSplitDialog
+from core.ai_predictor import AIPredictor
 
 # ปิดคำเตือน decompression bomb สำหรับภาพขนาดใหญ่
 Image.MAX_IMAGE_PIXELS = None
@@ -453,9 +454,43 @@ class ManualImageSplitter(QMainWindow):
             
             progress.close()
             
+            # --- แทรกขั้นตอนวิเคราะห์จุดตัดด้วย AI ---
+            ai_cut_ys = None
+            weights_path = os.path.join(os.getcwd(), "best_classifier.pth")
+            if os.path.exists(weights_path):
+                self.log_message("พบไฟล์เบาะแส AI: กำลังรันโมเดลทำนายจุดตัด...")
+                
+                # แสดง Progress Dialog สำหรับ AI
+                ai_progress = QProgressDialog("กำลังวิเคราะห์จุดตัดด้วย AI...", "ข้าม (Skip)", 0, 100, self)
+                ai_progress.setWindowTitle("AI Guideline")
+                ai_progress.setWindowModality(Qt.WindowModal)
+                ai_progress.setMinimumDuration(0)
+                ai_progress.setValue(0)
+                
+                # ฟังก์ชัน callback สำหรับให้ AI อัพเดทแถบสถานะ
+                def update_ai_progress(val):
+                    ai_progress.setValue(val)
+                    QApplication.processEvents()
+                    
+                predictor = AIPredictor(weights_path)
+                
+                # รัน AI
+                success, predicted_ys, msg = predictor.predict_cut_points(merged_img, update_ai_progress)
+                
+                if success:
+                    ai_cut_ys = predicted_ys
+                    self.log_message(f"AI ทำนายสำเร็จ: {msg}")
+                else:
+                    self.log_message(f"AI รันไม่สำเร็จ (ข้ามได้): {msg}")
+                    
+                ai_progress.close()
+            else:
+                self.log_message("ข้ามการวิเคราะห์ AI (ไม่พบไฟล์ best_classifier.pth)")
+            # ------------------------------------
+            
             # แสดงหน้าต่างแบ่งภาพ
             self.log_message("เปิดหน้าต่างแบ่งภาพด้วยตนเอง...")
-            dialog = ManualSplitDialog(self, pixmap)
+            dialog = ManualSplitDialog(self, pixmap, initial_h_lines=ai_cut_ys)
             if dialog.exec() == QDialog.Accepted:
                 h_breakpoints = dialog.get_horizontal_breakpoints()
                 v_breakpoints = dialog.get_vertical_breakpoints()

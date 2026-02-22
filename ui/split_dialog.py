@@ -8,7 +8,7 @@ from ui.styles import (get_splitter_style, get_tab_widget_style, get_slider_styl
 from ui.split_view import ManualSplitView
 
 class ManualSplitDialog(QDialog):
-    def __init__(self, parent=None, pixmap=None):
+    def __init__(self, parent=None, pixmap=None, initial_h_lines=None):
         super().__init__(parent)
         self.setWindowTitle("ตัวตัดภาพด้วยตนเอง")
         self.setMinimumSize(800, 600)
@@ -34,6 +34,14 @@ class ManualSplitDialog(QDialog):
             self.view.set_line_properties(self.h_line_color, self.v_line_color, self.h_line_thickness, self.v_line_thickness)
             # กำหนดสีพื้นหลังให้กับ view
             self.view.set_background_color(self.bg_color)
+            
+            # เพิ่มเส้นเริ่มต้น (AI Guideline) ถ้ามี
+            if initial_h_lines:
+                for y in initial_h_lines:
+                    self.view.add_horizontal_line(y)
+                # ล้างประวัติเพื่อไม่ให้ผู้ใช้กด Undo แล้วเผลอลบเส้น AI รวดเดียว
+                self.view.action_history = []
+                self.view.current_action_index = -1
             
         # เชื่อมต่อสัญญาณการเปลี่ยนแปลงประวัติ
         self.view.history_changed.connect(self.update_history_buttons)
