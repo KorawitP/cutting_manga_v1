@@ -495,7 +495,9 @@ class ManualImageSplitter(QMainWindow):
                 h_breakpoints = dialog.get_horizontal_breakpoints()
                 v_breakpoints = dialog.get_vertical_breakpoints()
                 scale_factor = dialog.get_scale_factor()
-                
+                if hard_cases["0_unsafe"] or hard_cases["1_safe"]:
+                    self.save_hard_cases(merged_img, hard_cases)
+                    
                 if h_breakpoints or v_breakpoints:
                     success = self.split_at_breakpoints(merged_img, h_breakpoints, v_breakpoints, scale_factor, output_dir, episode_num)
                     if success:
@@ -561,6 +563,67 @@ class ManualImageSplitter(QMainWindow):
         except Exception as e:
             self.log_message(f"เกิดข้อผิดพลาดในการรวมภาพ: {str(e)}")
             return None
+
+    def save_hard_cases(self, img, hard_cases):
+        """บันทึกภาพ Hard Cases สำหรับนำไปเทรน AI ใหม่"""
+        try:
+            hardcase_dir = os.path.join(os.getcwd(), "dataset_hardcases")
+            unsafe_dir = os.path.join(hardcase_dir, "0_unsafe")
+            safe_dir = os.path.join(hardcase_dir, "1_safe")
+            
+            os.makedirs(unsafe_dir, exist_ok=True)
+            os.makedirs(safe_dir, exist_ok=True)
+            
+            # การตั้งค่าแบนด์วิดท์ของภาพตาม Dataset (256px height, 720px width)
+            slice_height = 256
+            target_width = 720
+            
+            # ย่อขนาดความกว้างเป็น 720 ก่อนตัด เพื่อให้ได้ภาพเหมือนกับตอน AI มอง
+            scale_ratio = target_width / img.width
+            new_height = int(img.height * scale_ratio)
+            resized_img = img.resize((target_width, new_height), Image.Resampling.LANCZOS)
+            
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            
+            # ฟังก์ชันช่วยบันทึก
+            def save_slice(y_original, folder_path, prefix):
+                # แปลงค่า y จาก Original เป็น 720px_scale
+                y_scaled = int(y_original * scale_ratio)
+                
+                # ให้ค่า y อยู่กึ่งกลางแถบ 256px
+                half_h = slice_height // 2
+                
+                top = max(0, y_scaled - half_h)
+                bottom = top + slice_height
+                
+                # แกัสไลเดอร์ถ้าติดขอบล่าง
+                if bottom > resized_img.height:
+                    bottom = resized_img.height
+                    top = max(0, bottom - slice_height)
+                    
+                # หั่นและเซฟ
+                if bottom - top == slice_height:
+                    slice_img = resized_img.crop((0, top, target_width, bottom))
+                    filename = f"hc_{prefix}_{timestamp}_{int(y_original)}.jpg"
+                    slice_img.save(os.path.join(folder_path, filename), "JPEG", quality=95)
+            
+            # ประมวลผลแต่ละเคส
+            unsafe_count = 0
+            safe_count = 0
+            
+            for y in hard_cases.get("0_unsafe", []):
+                save_slice(y, unsafe_dir, "fp")
+                unsafe_count += 1
+                
+            for y in hard_cases.get("1_safe", []):
+                save_slice(y, safe_dir, "fn")
+                safe_count += 1
+                
+            if unsafe_count > 0 or safe_count > 0:
+                self.log_message(f"บันทึก Hard Cases สำเร็จ: Unsafe(ลบ/ย้าย)={unsafe_count} ภาพ, Safe(เพิ่ม/ย้ายมา)={safe_count} ภาพ")
+                
+        except Exception as e:
+            self.log_message(f"เตือน: ไม่สามารถบันทึก Hard Cases ได้: {str(e)}")
 
     def split_at_breakpoints(self, merged_img, h_breakpoints, v_breakpoints, scale_factor=1.0, output_dir=None, episode_num=None):
         """แบ่งภาพตามจุดตัดที่กำหนด"""

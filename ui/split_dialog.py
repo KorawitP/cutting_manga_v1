@@ -36,9 +36,11 @@ class ManualSplitDialog(QDialog):
             self.view.set_background_color(self.bg_color)
             
             # เพิ่มเส้นเริ่มต้น (AI Guideline) ถ้ามี
+            self.initial_ai_ys = []
             if initial_h_lines:
+                self.initial_ai_ys = list(initial_h_lines)
                 for y in initial_h_lines:
-                    self.view.add_horizontal_line(y)
+                    self.view.add_horizontal_line(y, is_ai=True)
                 # ล้างประวัติเพื่อไม่ให้ผู้ใช้กด Undo แล้วเผลอลบเส้น AI รวดเดียว
                 self.view.action_history = []
                 self.view.current_action_index = -1
@@ -375,6 +377,40 @@ class ManualSplitDialog(QDialog):
     def get_vertical_breakpoints(self):
         """รับค่าจุดตัดแนวตั้งที่ผู้ใช้กำหนด"""
         return self.view.get_vertical_breakpoints()
+
+    def get_hard_cases(self):
+        """
+        คำนวณเคสที่ AI ทายพลาดเพื่อนำไปเทรนใหม่
+        return: {"0_unsafe": [y_coords], "1_safe": [y_coords]}
+        """
+        unsafe_ys = [] # False Positives (AI บอกว่าตัดได้ แต่ผู้ใช้ลบ/ย้ายหนี)
+        safe_ys = []   # False Negatives (AI ไม่ได้บอกให้ตัด แต่ผู้ใช้เพิ่มหรือย้ายมาตรงนี้)
+        
+        current_ai_original_ys = []
+        
+        # 1. ตรวจสอบเส้นปัจจุบัน
+        for line_data in self.view.h_lines:
+            y = line_data["y"]
+            if line_data.get("is_ai"):
+                orig_y = line_data.get("original_y")
+                current_ai_original_ys.append(orig_y)
+                # เส้น AI ถูกเลื่อน (ระยะ > 3px เพื่อกันขยับโดยไม่ได้ตั้งใจนิดหน่อย)
+                if abs(y - orig_y) > 3.0:
+                    unsafe_ys.append(orig_y) # จุดเดิมที่ AI คิดว่าถูก คือที่ที่ผิด
+                    safe_ys.append(y)        # จุดใหม่ที่ผู้ใช้ย้ายมา คือที่ที่ถูก
+            else:
+                # เส้นผู้ใช้เพิ่มเข้ามาใหม่ (AI มองข้าม)
+                safe_ys.append(y)
+                
+        # 2. ตรวจสอบเส้น AI ที่ถูกลบไปเลย
+        for orig_y in self.initial_ai_ys:
+            if orig_y not in current_ai_original_ys:
+                unsafe_ys.append(orig_y) # AI เสนอมา แต่ผู้ใช้ลบ แสดงว่าตัดไม่ได้
+                
+        return {
+            "0_unsafe": unsafe_ys,
+            "1_safe": safe_ys
+        }
 
     def keyPressEvent(self, event):
         """จัดการการกดปุ่ม - ปิดการทำงานของ ESC"""

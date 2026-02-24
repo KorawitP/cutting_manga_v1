@@ -259,14 +259,14 @@ class ManualSplitView(QGraphicsView):
         else:
             super().mouseReleaseEvent(event)
 
-    def add_horizontal_line(self, y):
-        """เพิ่มเส้นแนวนอนโดยผู้ใช้"""
+    def add_horizontal_line(self, y, is_ai=False):
+        """เพิ่มเส้นแนวนอนโดยผู้ใช้หรือ AI"""
         width = self.scene.width()
         # ให้เส้นล้นออกไปนอกขอบภาพทั้งซ้ายและขวา 500 พิกเซลเพื่อให้เห็นชัดเจน
         line = QGraphicsLineItem(-500, y, width + 500, y)
         line.setPen(QPen(self.user_color, self.h_line_thickness))
         self.scene.addItem(line)
-        line_data = {"line": line, "type": LineAction.HORIZONTAL, "y": y}
+        line_data = {"line": line, "type": LineAction.HORIZONTAL, "y": y, "is_ai": is_ai, "original_y": y if is_ai else None}
         self.h_lines.append(line_data)
         
         # บันทึกการกระทำสำหรับ undo
@@ -473,7 +473,7 @@ class ManualSplitView(QGraphicsView):
                     self.scene.addItem(new_line)
                     
                     # สร้างข้อมูลเส้น
-                    new_line_data = {"line": new_line, "type": LineAction.HORIZONTAL, "y": y}
+                    new_line_data = {"line": new_line, "type": LineAction.HORIZONTAL, "y": y, "is_ai": line_data.get("is_ai", False), "original_y": line_data.get("original_y", None)}
                     
                     # เพิ่มเส้นลงในรายการ
                     if action.line_index <= len(self.h_lines):
