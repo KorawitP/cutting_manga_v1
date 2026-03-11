@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QPushButton,
                            QFileDialog, QLabel, QMessageBox, QHBoxLayout, 
                            QProgressDialog, QProgressBar, QGroupBox, QLineEdit, 
                            QSlider, QComboBox, QTabWidget, QStatusBar, QStyle, 
-                           QApplication, QDialog)
+                           QApplication, QDialog, QCheckBox)
 from PySide6.QtGui import QPixmap, QImage
 from PySide6.QtCore import Qt, QSettings
 
@@ -252,6 +252,18 @@ class ManualImageSplitter(QMainWindow):
         image_layout.addLayout(format_layout)
         
         settings_layout.addWidget(image_group)
+        
+        # ตั้งค่าระบบผู้ช่วย
+        ai_group = QGroupBox("ระบบผู้ช่วย")
+        ai_layout = QVBoxLayout(ai_group)
+        
+        self.use_ai_checkbox = QCheckBox("ใช้ AI ช่วยหาจุดตัดอัตโนมัติ")
+        self.use_ai_checkbox.setChecked(self.settings.value("use_ai", True, type=bool))
+        self.use_ai_checkbox.stateChanged.connect(lambda state: self.settings.setValue("use_ai", bool(state)))
+        ai_layout.addWidget(self.use_ai_checkbox)
+        
+        settings_layout.addWidget(ai_group)
+        
         settings_layout.addStretch()
         
         # เพิ่มแท็บเข้าไป
@@ -457,7 +469,9 @@ class ManualImageSplitter(QMainWindow):
             # --- แทรกขั้นตอนวิเคราะห์จุดตัดด้วย AI ---
             ai_cut_ys = None
             weights_path = os.path.join(os.getcwd(), "best_classifier.pth")
-            if os.path.exists(weights_path):
+            use_ai = self.settings.value("use_ai", True, type=bool)
+            
+            if use_ai and os.path.exists(weights_path):
                 self.log_message("พบไฟล์เบาะแส AI: กำลังรันโมเดลทำนายจุดตัด...")
                 
                 # แสดง Progress Dialog สำหรับ AI
@@ -485,7 +499,10 @@ class ManualImageSplitter(QMainWindow):
                     
                 ai_progress.close()
             else:
-                self.log_message("ข้ามการวิเคราะห์ AI (ไม่พบไฟล์ best_classifier.pth)")
+                if not use_ai:
+                    self.log_message("ข้ามการวิเคราะห์ AI (ผู้ใช้ปิดการใช้งานในหน้าตั้งค่า)")
+                else:
+                    self.log_message("ข้ามการวิเคราะห์ AI (ไม่พบไฟล์ best_classifier.pth)")
             # ------------------------------------
             
             # แสดงหน้าต่างแบ่งภาพ
