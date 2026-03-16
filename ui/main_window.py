@@ -512,6 +512,7 @@ class ManualImageSplitter(QMainWindow):
                 h_breakpoints = dialog.get_horizontal_breakpoints()
                 v_breakpoints = dialog.get_vertical_breakpoints()
                 scale_factor = dialog.get_scale_factor()
+                hard_cases = dialog.get_hard_cases()
                 if hard_cases["0_unsafe"] or hard_cases["1_safe"]:
                     self.save_hard_cases(merged_img, hard_cases)
                     
