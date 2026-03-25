@@ -1,5 +1,6 @@
 import os
-import sys
+import re
+import sys 
 import json
 import random
 import shutil
@@ -320,6 +321,10 @@ class ManualImageSplitter(QMainWindow):
         else:
             self.file_label.setText("ยังไม่ได้เลือกไฟล์")
 
+    def natural_sort_key(self, s):
+        """สร้าง key สำหรับจัดเรียงไฟล์แบบ Natural Sort (1, 2, 10 แทนที่จะเป็น 1, 10, 2)"""
+        return [int(text) if text.isdigit() else text.lower() for text in re.split('([0-9]+)', s)]
+
     def select_image_files(self):
         """เลือกไฟล์ภาพที่ต้องการแบ่ง"""
         files, _ = QFileDialog.getOpenFileNames(
@@ -331,9 +336,6 @@ class ManualImageSplitter(QMainWindow):
         
         if files:
             try:
-                # เรียงลำดับไฟล์
-                files.sort()
-                
                 # เพิ่มไฟล์ใหม่เข้าไปในรายการ
                 added_count = 0
                 for file_path in files:
@@ -341,14 +343,17 @@ class ManualImageSplitter(QMainWindow):
                         self.image_files.append(file_path)
                         added_count += 1
                 
+                # เรียงลำดับรายการทั้งหมดด้วย Natural Sort (ช่วยให้จัดเรียงเลข 1, 2, 10 ได้ถูกต้อง)
+                self.image_files.sort(key=self.natural_sort_key)
+                
                 if added_count > 0:
                     self.update_file_label()
-                    self.log_message(f"เลือกไฟล์: {added_count} ไฟล์")
-                    self.statusBar.showMessage(f"เลือก {added_count} ไฟล์สำเร็จ", 3000)
+                    self.log_message(f"เพิ่มไฟล์ใหม่: {added_count} ไฟล์ (รวมทั้งหมด {len(self.image_files)} ไฟล์)")
+                    self.statusBar.showMessage(f"เพิ่ม {added_count} ไฟล์สำเร็จ และจัดเรียงใหม่ตามชื่อไฟล์", 3000)
                     
                     # ตั้งค่าเริ่มต้นสำหรับโฟลเดอร์ปลายทาง
-                    if not self.output_path_edit.text() and files:
-                        default_folder = os.path.dirname(files[0])
+                    if not self.output_path_edit.text() and self.image_files:
+                        default_folder = os.path.dirname(self.image_files[0])
                         self.output_path_edit.setText(default_folder)
                         self.log_message(f"ตั้งค่าโฟลเดอร์ปลายทางเริ่มต้น: {default_folder}")
                 else:
