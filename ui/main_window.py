@@ -265,6 +265,31 @@ class ManualImageSplitter(QMainWindow):
         
         settings_layout.addWidget(ai_group)
         
+        # ตั้งค่าที่เก็บ Dataset สำหรับเทรน AI
+        dataset_group = QGroupBox("การจัดเก็บข้อมูลเทรน AI (Dataset)")
+        dataset_layout = QVBoxLayout(dataset_group)
+        
+        dataset_path_layout = QHBoxLayout()
+        dataset_path_label = QLabel("โฟลเดอร์ Dataset:")
+        dataset_path_layout.addWidget(dataset_path_label)
+        
+        self.dataset_path_edit = QLineEdit()
+        # ค่าเริ่มต้นคือโฟลเดอร์รันโปรแกรม/dataset_hardcases
+        default_dataset = os.path.join(os.getcwd(), "dataset_hardcases")
+        current_dataset = self.settings.value("dataset_path", default_dataset)
+        self.dataset_path_edit.setText(current_dataset)
+        self.dataset_path_edit.setReadOnly(True)
+        dataset_path_layout.addWidget(self.dataset_path_edit)
+        
+        self.dataset_browse_btn = ModernButton("เปลี่ยน..", self,
+                                    None,
+                                    self.theme["accent"])
+        self.dataset_browse_btn.clicked.connect(self.browse_dataset_folder)
+        dataset_path_layout.addWidget(self.dataset_browse_btn)
+        
+        dataset_layout.addLayout(dataset_path_layout)
+        settings_layout.addWidget(dataset_group)
+        
         settings_layout.addStretch()
         
         # เพิ่มแท็บเข้าไป
@@ -383,6 +408,19 @@ class ManualImageSplitter(QMainWindow):
         if folder:
             self.output_path_edit.setText(folder)
             self.log_message(f"เลือกโฟลเดอร์ปลายทาง: {folder}")
+
+    def browse_dataset_folder(self):
+        """เลือกโฟลเดอร์สำหรับบันทึกภาพ Hard Cases (Dataset)"""
+        folder = QFileDialog.getExistingDirectory(
+            self,
+            "เลือกโฟลเดอร์สำหรับบันทึก Dataset",
+            self.dataset_path_edit.text()
+        )
+        
+        if folder:
+            self.dataset_path_edit.setText(folder)
+            self.settings.setValue("dataset_path", folder)
+            self.log_message(f"เปลี่ยนโฟลเดอร์ Dataset เป็น: {folder}")
 
     def validate_save_settings(self):
         """ตรวจสอบความถูกต้องของการตั้งค่าการบันทึก"""
@@ -590,7 +628,10 @@ class ManualImageSplitter(QMainWindow):
     def save_hard_cases(self, img, hard_cases):
         """บันทึกภาพ Hard Cases สำหรับนำไปเทรน AI ใหม่"""
         try:
-            hardcase_dir = os.path.join(os.getcwd(), "dataset_hardcases")
+            # ดึงค่าที่อยู่โฟลเดอร์จาก Settings ที่ตั้งค่าไว้ หากไม่มีใช้ค่า Default
+            default_dataset = os.path.join(os.getcwd(), "dataset_hardcases")
+            hardcase_dir = self.settings.value("dataset_path", default_dataset)
+            
             unsafe_dir = os.path.join(hardcase_dir, "0_unsafe")
             safe_dir = os.path.join(hardcase_dir, "1_safe")
             
