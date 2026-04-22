@@ -42,8 +42,9 @@ class ManualImageSplitter(QMainWindow):
         # ตั้งค่าไอคอน (ถ้ามี)
         self.setWindowIcon(self.style().standardIcon(QStyle.SP_FileDialogDetailedView))
         
-        # เพิ่มการกำหนดไฟล์ log
-        self.log_dir = os.path.join(os.getcwd(), "logs")
+        # เพิ่มการกำหนดไฟล์ log - ใช้ path ที่แน่นอนจากตำแหน่งตัว executable
+        app_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+        self.log_dir = os.path.join(app_dir, "logs")
         os.makedirs(self.log_dir, exist_ok=True)
         self.log_file = os.path.join(self.log_dir, f"manual_splitter_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
         
@@ -298,6 +299,12 @@ class ManualImageSplitter(QMainWindow):
         
         main_layout.addWidget(tab_widget)
     
+    def get_resource_path(self, relative_path):
+        """หาพาธของไฟล์ทรัพยากร ทั้งตอนรันโค้ดปกติและตอนเป็น EXE"""
+        if hasattr(sys, '_MEIPASS'):
+            return os.path.join(sys._MEIPASS, relative_path)
+        return os.path.join(os.path.abspath("."), relative_path)
+
     def reset_files(self):
         """ล้างรายการไฟล์"""
         if not self.image_files:
@@ -511,7 +518,8 @@ class ManualImageSplitter(QMainWindow):
             
             # --- แทรกขั้นตอนวิเคราะห์จุดตัดด้วย AI ---
             ai_cut_ys = None
-            weights_path = os.path.join(os.getcwd(), "best_classifier.pth")
+            # ใช้ get_resource_path เพื่อให้หาโมเดลเจอไม่ว่าจะอยู่ข้างนอกหรือถูกแพ็คใน EXE
+            weights_path = self.get_resource_path("best_classifier.pth")
             use_ai = self.settings.value("use_ai", True, type=bool)
             
             if use_ai and os.path.exists(weights_path):
