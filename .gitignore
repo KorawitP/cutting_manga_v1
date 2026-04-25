@@ -27,6 +27,14 @@ logs/
 # ไฟล์ที่สร้างจากการทำงานของโปรแกรม
 output/
 temp/
+upscaled/
+*.upscaling_tmp.*
+.manga_enhancer_done.json
+
+# external binaries สำหรับ tools แยก
+tools/manga_enhancer/bin/*
+!tools/manga_enhancer/bin/.gitkeep
+tools/manga_enhancer/downloads/
 
 # ไฟล์ระบบ
 .DS_Store
