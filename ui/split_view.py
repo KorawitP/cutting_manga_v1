@@ -231,7 +231,7 @@ class ManualSplitView(QGraphicsView):
                 # บันทึกการกระทำสำหรับ undo (เฉพาะเมื่อมีการเปลี่ยนแปลงจริง)
                 if abs(old_y - new_y) > 0.001:  # ถ้ามีการเปลี่ยนแปลงจริง
                     line_index = self.h_lines.index(self.dragging_line)
-                    self.add_action(LineAction(LineAction.MOVE, line_index, None, old_y, new_y))
+                    self.add_action(LineAction(LineAction.MOVE, line_index, self.dragging_line, old_y, new_y))
                 
                 self.dragging_line["y"] = new_y
                 
@@ -246,7 +246,7 @@ class ManualSplitView(QGraphicsView):
                 # บันทึกการกระทำสำหรับ undo (เฉพาะเมื่อมีการเปลี่ยนแปลงจริง)
                 if abs(old_x - new_x) > 0.001:  # ถ้ามีการเปลี่ยนแปลงจริง
                     line_index = self.v_lines.index(self.dragging_line)
-                    self.add_action(LineAction(LineAction.MOVE, line_index, None, old_x, new_x))
+                    self.add_action(LineAction(LineAction.MOVE, line_index, self.dragging_line, old_x, new_x))
                 
                 self.dragging_line["x"] = new_x
                 

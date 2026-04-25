@@ -1,26 +1,23 @@
 import os
 import re
 import sys 
-import json
-import random
-import shutil
 import gc
-import time
-from io import BytesIO
 from datetime import datetime
 from PIL import Image
 
-from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QPushButton, 
+from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout,
                            QFileDialog, QLabel, QMessageBox, QHBoxLayout, 
                            QProgressDialog, QProgressBar, QGroupBox, QLineEdit, 
                            QSlider, QComboBox, QTabWidget, QStatusBar, QStyle, 
                            QApplication, QDialog, QCheckBox)
 from PySide6.QtGui import QPixmap, QImage
-from PySide6.QtCore import Qt, QSettings
+from PySide6.QtCore import Qt, QSettings, QEventLoop
 
 from ui.ui_components import ModernStyle, ModernButton
 from ui.split_dialog import ManualSplitDialog
+from ui.workers import AIPredictionWorker, ImageExportWorker, ImageMergeWorker
 from core.ai_predictor import AIPredictor
+from core.image_ops import save_hard_case_slices
 
 # ปิดคำเตือน decompression bomb สำหรับภาพขนาดใหญ่
 Image.MAX_IMAGE_PIXELS = None
@@ -50,6 +47,11 @@ class ManualImageSplitter(QMainWindow):
         
         # ตัวแปรเก็บไฟล์
         self.image_files = []
+        self.ai_predictor = None
+        self.ai_weights_path = None
+        self.ai_worker = None
+        self.merge_worker = None
+        self.export_worker = None
         
         # ตั้งค่าเริ่มต้นสำหรับการบันทึก
         self.default_output_path = ""
@@ -477,6 +479,51 @@ class ManualImageSplitter(QMainWindow):
         
         print(message_with_time)
 
+    def run_ai_prediction(self, merged_img, weights_path):
+        """Run AI inference in a worker thread so the UI event loop stays responsive."""
+        if self.ai_predictor is None or self.ai_weights_path != weights_path:
+            self.ai_predictor = AIPredictor(weights_path)
+            self.ai_weights_path = weights_path
+
+        ai_progress = QProgressDialog("กำลังวิเคราะห์จุดตัดด้วย AI...", "ข้าม (Skip)", 0, 100, self)
+        ai_progress.setWindowTitle("AI Guideline")
+        ai_progress.setWindowModality(Qt.WindowModal)
+        ai_progress.setMinimumDuration(0)
+        ai_progress.setValue(0)
+
+        result = {"success": False, "cut_ys": [], "message": "ยกเลิกการวิเคราะห์ AI"}
+        loop = QEventLoop()
+        worker = AIPredictionWorker(self.ai_predictor, merged_img, self)
+        self.ai_worker = worker
+
+        def finish(success, cut_ys, message):
+            result["success"] = success
+            result["cut_ys"] = cut_ys
+            result["message"] = message
+            ai_progress.close()
+            loop.quit()
+
+        ai_progress.canceled.connect(worker.cancel)
+        worker.progress_changed.connect(ai_progress.setValue)
+        worker.prediction_finished.connect(finish)
+        worker.finished.connect(worker.deleteLater)
+
+        worker.start()
+        loop.exec()
+        self.ai_worker = None
+
+        return result["success"], result["cut_ys"], result["message"]
+
+    def pil_image_to_pixmap(self, pil_image):
+        """Convert a PIL image to QPixmap without PNG encode/decode overhead."""
+        if pil_image.mode != "RGB":
+            pil_image = pil_image.convert("RGB")
+
+        width, height = pil_image.size
+        image_bytes = pil_image.tobytes("raw", "RGB")
+        qimg = QImage(image_bytes, width, height, width * 3, QImage.Format_RGB888).copy()
+        return QPixmap.fromImage(qimg)
+
     def start_manual_split(self):
         """เริ่มกระบวนการแบ่งภาพ"""
         if not self.image_files:
@@ -508,11 +555,7 @@ class ManualImageSplitter(QMainWindow):
             progress.setLabelText("กำลังเตรียมภาพสำหรับแสดงผล...")
             QApplication.processEvents()  # อัพเดท UI
             
-            # ใช้ BytesIO เพื่อประหยัดหน่วยความจำ
-            with BytesIO() as bio:
-                merged_img.save(bio, format='PNG')
-                qimg = QImage.fromData(bio.getvalue())
-                pixmap = QPixmap.fromImage(qimg)
+            pixmap = self.pil_image_to_pixmap(merged_img)
             
             progress.close()
             
@@ -524,31 +567,12 @@ class ManualImageSplitter(QMainWindow):
             
             if use_ai and os.path.exists(weights_path):
                 self.log_message("พบไฟล์เบาะแส AI: กำลังรันโมเดลทำนายจุดตัด...")
-                
-                # แสดง Progress Dialog สำหรับ AI
-                ai_progress = QProgressDialog("กำลังวิเคราะห์จุดตัดด้วย AI...", "ข้าม (Skip)", 0, 100, self)
-                ai_progress.setWindowTitle("AI Guideline")
-                ai_progress.setWindowModality(Qt.WindowModal)
-                ai_progress.setMinimumDuration(0)
-                ai_progress.setValue(0)
-                
-                # ฟังก์ชัน callback สำหรับให้ AI อัพเดทแถบสถานะ
-                def update_ai_progress(val):
-                    ai_progress.setValue(val)
-                    QApplication.processEvents()
-                    
-                predictor = AIPredictor(weights_path)
-                
-                # รัน AI
-                success, predicted_ys, msg = predictor.predict_cut_points(merged_img, update_ai_progress)
-                
+                success, predicted_ys, msg = self.run_ai_prediction(merged_img, weights_path)
                 if success:
                     ai_cut_ys = predicted_ys
                     self.log_message(f"AI ทำนายสำเร็จ: {msg}")
                 else:
                     self.log_message(f"AI รันไม่สำเร็จ (ข้ามได้): {msg}")
-                    
-                ai_progress.close()
             else:
                 if not use_ai:
                     self.log_message("ข้ามการวิเคราะห์ AI (ผู้ใช้ปิดการใช้งานในหน้าตั้งค่า)")
@@ -585,290 +609,103 @@ class ManualImageSplitter(QMainWindow):
 
     def merge_all_images(self, progress):
         """รวมทุกภาพในแนวตั้งเป็นภาพเดียว"""
-        try:
-            # เปิดและรวมภาพทีละภาพ
-            total_height = 0
-            width = None
-            images = []
-            
-            for i, img_path in enumerate(self.image_files):
-                progress.setValue(i)
-                QApplication.processEvents()  # อัพเดท UI
-                
-                if progress.wasCanceled():
-                    return None
-                
-                try:
-                    img = Image.open(img_path)
-                    if width is None:
-                        width = img.width
-                    elif img.width != width:
-                        raise Exception(f"ความกว้างของภาพไม่เท่ากัน: {img_path}")
-                    total_height += img.height
-                    images.append(img)
-                except Exception as e:
-                    self.log_message(f"ข้อผิดพลาดในการโหลดภาพ {img_path}: {str(e)}")
-                    continue
-            
-            if not images:
-                raise Exception("ไม่สามารถโหลดภาพได้")
-            
-            # สร้างภาพรวม
-            progress.setLabelText("กำลังรวมภาพ...")
-            merged_img = Image.new('RGB', (width, total_height), 'white')
-            current_height = 0
-            
-            for i, img in enumerate(images):
-                progress.setValue(i)
-                QApplication.processEvents()  # อัพเดท UI
-                
-                merged_img.paste(img, (0, current_height))
-                current_height += img.height
-                img.close()  # ปิดภาพทันทีหลังใช้งาน
-            
-            self.log_message(f"รวมภาพสำเร็จ - ขนาดภาพรวม: {width}x{total_height} pixels")
-            return merged_img
-            
-        except Exception as e:
-            self.log_message(f"เกิดข้อผิดพลาดในการรวมภาพ: {str(e)}")
-            return None
+        result = {"image": None, "message": ""}
+        loop = QEventLoop()
+        worker = ImageMergeWorker(self.image_files, self)
+        self.merge_worker = worker
+
+        def update_progress(value, maximum, label):
+            progress.setMaximum(maximum)
+            progress.setValue(value)
+            progress.setLabelText(label)
+
+        def finish(merged_img, message):
+            result["image"] = merged_img
+            result["message"] = message
+            loop.quit()
+
+        progress.canceled.connect(worker.cancel)
+        worker.progress_changed.connect(update_progress)
+        worker.log_message.connect(self.log_message)
+        worker.merge_finished.connect(finish)
+        worker.finished.connect(worker.deleteLater)
+
+        worker.start()
+        loop.exec()
+        self.merge_worker = None
+
+        if result["message"]:
+            self.log_message(f"เกิดข้อผิดพลาดในการรวมภาพ: {result['message']}")
+        return result["image"]
 
     def save_hard_cases(self, img, hard_cases):
         """บันทึกภาพ Hard Cases สำหรับนำไปเทรน AI ใหม่"""
         try:
-            # ดึงค่าที่อยู่โฟลเดอร์จาก Settings ที่ตั้งค่าไว้ หากไม่มีใช้ค่า Default
             default_dataset = os.path.join(os.getcwd(), "dataset_hardcases")
             hardcase_dir = self.settings.value("dataset_path", default_dataset)
-            
-            unsafe_dir = os.path.join(hardcase_dir, "0_unsafe")
-            safe_dir = os.path.join(hardcase_dir, "1_safe")
-            
-            os.makedirs(unsafe_dir, exist_ok=True)
-            os.makedirs(safe_dir, exist_ok=True)
-            
-            # การตั้งค่าแบนด์วิดท์ของภาพตาม Dataset (256px height, 720px width)
-            slice_height = 256
-            target_width = 720
-            
-            # ย่อขนาดความกว้างเป็น 720 ก่อนตัด เพื่อให้ได้ภาพเหมือนกับตอน AI มอง
-            scale_ratio = target_width / img.width
-            new_height = int(img.height * scale_ratio)
-            resized_img = img.resize((target_width, new_height), Image.Resampling.LANCZOS)
-            
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            
-            # ฟังก์ชันช่วยบันทึก
-            def save_slice(y_original, folder_path, prefix):
-                # แปลงค่า y จาก Original เป็น 720px_scale
-                y_scaled = int(y_original * scale_ratio)
-                
-                # ให้ค่า y อยู่กึ่งกลางแถบ 256px
-                half_h = slice_height // 2
-                
-                top = max(0, y_scaled - half_h)
-                bottom = top + slice_height
-                
-                # แกัสไลเดอร์ถ้าติดขอบล่าง
-                if bottom > resized_img.height:
-                    bottom = resized_img.height
-                    top = max(0, bottom - slice_height)
-                    
-                # หั่นและเซฟ
-                if bottom - top == slice_height:
-                    slice_img = resized_img.crop((0, top, target_width, bottom))
-                    filename = f"hc_{prefix}_{timestamp}_{int(y_original)}.jpg"
-                    slice_img.save(os.path.join(folder_path, filename), "JPEG", quality=95)
-            
-            # ประมวลผลแต่ละเคส
-            unsafe_count = 0
-            safe_count = 0
-            
-            for y in hard_cases.get("0_unsafe", []):
-                save_slice(y, unsafe_dir, "fp")
-                unsafe_count += 1
-                
-            for y in hard_cases.get("1_safe", []):
-                save_slice(y, safe_dir, "fn")
-                safe_count += 1
-                
-            if unsafe_count > 0 or safe_count > 0:
-                self.log_message(f"บันทึก Hard Cases สำเร็จ: Unsafe(ลบ/ย้าย)={unsafe_count} ภาพ, Safe(เพิ่ม/ย้ายมา)={safe_count} ภาพ")
-                
+            save_hard_case_slices(img, hard_cases, hardcase_dir, log_callback=self.log_message)
         except Exception as e:
             self.log_message(f"เตือน: ไม่สามารถบันทึก Hard Cases ได้: {str(e)}")
 
     def split_at_breakpoints(self, merged_img, h_breakpoints, v_breakpoints, scale_factor=1.0, output_dir=None, episode_num=None):
         """แบ่งภาพตามจุดตัดที่กำหนด"""
         try:
-            # สร้างโฟลเดอร์เก็บผลลัพธ์
             if output_dir is None:
                 base_folder = os.path.dirname(self.image_files[0])
                 folder_name = os.path.splitext(os.path.basename(self.image_files[0]))[0]
                 output_dir = os.path.join(base_folder, f"split_results_{folder_name}")
-            
-            # สร้างโฟลเดอร์ย่อยใหม่ตามชื่อที่ผู้ใช้กรอก
-            if episode_num:
-                final_output_dir = os.path.join(output_dir, episode_num)
-            else:
-                folder_name = os.path.splitext(os.path.basename(self.image_files[0]))[0]
-                final_output_dir = os.path.join(output_dir, folder_name)
-            
-            os.makedirs(final_output_dir, exist_ok=True)
-            self.log_message(f"สร้างโฟลเดอร์: {final_output_dir}")
-            
-            # ใช้โฟลเดอร์ย่อยเป็นปลายทางสำหรับบันทึกไฟล์
-            output_dir = final_output_dir
-            
-            # ย่อขนาดภาพถ้าจำเป็น
-            if scale_factor != 1.0:
-                new_width = int(merged_img.width * scale_factor)
-                new_height = int(merged_img.height * scale_factor)
-                merged_img = merged_img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-                self.log_message(f"ย่อขนาดภาพเป็น {scale_factor*100}% ({new_width}x{new_height})")
-            
-            # ตรวจสอบว่ามีการกำหนดจุดตัดหรือไม่
-            if not h_breakpoints and not v_breakpoints:
-                self.log_message("ไม่มีจุดตัดที่กำหนด ข้ามการแบ่งภาพ")
-                return True
-                
-            # เริ่มต้นจากภาพต้นฉบับที่จะใช้ตัด
-            working_image = merged_img
-            
-            # ตัดขอบซ้ายและขวาตามเส้นแนวตั้งก่อน (ถ้ามี)
-            if v_breakpoints:
-                self.log_message(f"จุดตัดแนวตั้ง: {v_breakpoints}")
-                
-                # ตรวจสอบและเรียงลำดับจุดตัดแนวตั้ง
-                v_breakpoints = sorted(v_breakpoints)
-                
-                # หากมีการตั้งจุดตัดแนวตั้งเพียง 2 จุด คือตัดขอบซ้ายและขวา
-                # จะใช้จุดเริ่มต้นและจุดสิ้นสุดเป็นขอบเขตการตัด
-                left_edge = v_breakpoints[0]
-                right_edge = v_breakpoints[-1] if len(v_breakpoints) > 1 else merged_img.width
-                
-                # ตัดภาพตามขอบซ้ายและขวา
-                cropped_image = merged_img.crop((left_edge, 0, right_edge, merged_img.height))
-                working_image = cropped_image  # ใช้ภาพที่ตัดขอบแล้วในขั้นตอนต่อไป
-                
-                self.log_message(f"ตัดขอบซ้ายที่ {left_edge}px และขอบขวาที่ {right_edge}px แล้ว")
-            
-            # บันทึกผลลัพธ์ภาพที่ตัดแล้ว
-            result_images = []
-            
-            # เมื่อตัดขอบซ้าย-ขวาแล้ว ต่อไปตัดตามแนวนอน (ถ้ามี)
-            if h_breakpoints:
-                # เพิ่มค่า 0 ที่จุดเริ่มต้นและความสูงภาพที่จุดสุดท้าย
-                h_points = [0] + h_breakpoints + [working_image.height]
-                self.log_message(f"จุดตัดแนวนอน: {h_breakpoints}")
-                
-                # สร้าง progress dialog สำหรับการตัดแนวนอน
-                h_progress = QProgressDialog("กำลังแบ่งภาพ...", "ยกเลิก", 0, len(h_points) - 1, self)
-                h_progress.setWindowModality(Qt.WindowModal)
-                h_progress.setMinimumDuration(0)
-                
-                for i in range(len(h_points) - 1):
-                    h_progress.setValue(i)
-                    h_progress.setLabelText(f"กำลังแบ่งภาพส่วนที่ {i+1}/{len(h_points)-1}...")
-                    QApplication.processEvents()  # อัพเดท UI
-                    
-                    if h_progress.wasCanceled():
-                        return False
-                    
-                    y_start = h_points[i]
-                    y_end = h_points[i+1]
-                    
-                    # ตัดภาพตามพิกัด y
-                    final_crop = working_image.crop((0, y_start, working_image.width, y_end))
-                    
-                    # บันทึกข้อมูลภาพที่ตัดแล้ว
-                    result_images.append({
-                        "image": final_crop,
-                        "horz_idx": 1,  # เพราะเราตัดขอบซ้าย-ขวาเป็นภาพเดียวแล้ว
-                        "vert_idx": i + 1,
-                        "width": final_crop.width,
-                        "height": final_crop.height
-                    })
-                
-                h_progress.close()
-            else:
-                # ถ้าไม่มีการตัดแนวนอน ให้ใช้ภาพที่ตัดขอบซ้าย-ขวาแล้วทั้งภาพ
-                result_images.append({
-                    "image": working_image,
-                    "horz_idx": 1,
-                    "vert_idx": 1,
-                    "width": working_image.width,
-                    "height": working_image.height
-                })
-            
-            # บันทึกไฟล์ทั้งหมด
-            save_progress = QProgressDialog("กำลังบันทึกไฟล์...", "ยกเลิก", 0, len(result_images), self)
+
+            source_name = os.path.splitext(os.path.basename(self.image_files[0]))[0]
+            total_parts = len(h_breakpoints) + 1 if h_breakpoints else 1
+            save_progress = QProgressDialog("กำลังบันทึกไฟล์...", "ยกเลิก", 0, total_parts, self)
             save_progress.setWindowModality(Qt.WindowModal)
             save_progress.setMinimumDuration(0)
-            
-            processed_images = []
 
-            current_format = self.format_combo.currentText()
-            
-            for i, img_info in enumerate(result_images):
-                save_progress.setValue(i)
-                save_progress.setLabelText(f"กำลังบันทึกไฟล์ {i+1}/{len(result_images)}...")
-                QApplication.processEvents()  # อัพเดท UI
-                
-                if save_progress.wasCanceled():
-                    return False
-                
-                # สร้างชื่อไฟล์
-                ext = current_format.lower()
-                if ext == 'jpeg':
-                    ext = 'jpg'
-                    
-                if episode_num:
-                    if v_breakpoints:
-                        filename = f"{episode_num}_{img_info['vert_idx']}.{ext}"
-                    else:
-                        filename = f"{episode_num}_{img_info['vert_idx']}.{ext}"
-                else:
-                    folder_name = os.path.splitext(os.path.basename(self.image_files[0]))[0]
-                    if v_breakpoints:
-                        filename = f"{folder_name}_{img_info['vert_idx']}.{ext}"
-                    else:
-                        filename = f"{folder_name}_{img_info['vert_idx']}.{ext}"
-                
-                filepath = os.path.join(output_dir, filename)
-                
-                img_to_save = img_info["image"]
-                
-                # อ่านค่า quality จาก slider (ถ้ามี)
-                quality = self.quality_slider.value() if hasattr(self, 'quality_slider') else 90
-                
-                if current_format == "JPEG":
-                    # ถ้าภาพมี channel alpha ให้แปลงเป็น RGB ก่อนเซฟเป็น JPEG เพราะ JPEG ไม่รองรับ RGBA
-                    if img_to_save.mode in ('RGBA', 'LA'):
-                        background = Image.new(img_to_save.mode[:-1], img_to_save.size, (255, 255, 255))
-                        background.paste(img_to_save, img_to_save.split()[-1])
-                        img_to_save = background
-                    img_to_save.save(filepath, current_format, quality=quality)
-                elif current_format == "WebP":
-                    img_to_save.save(filepath, current_format, quality=quality)
-                else:
-                    img_to_save.save(filepath, current_format)
-                
-                # เก็บข้อมูลสำหรับใช้ในการสร้าง Dataset
-                processed_images.append({
-                    "filepath": filepath,
-                    "width": img_info["width"],
-                    "height": img_info["height"]
-                })
-                
-                self.log_message(f"บันทึกภาพ: {filepath}")
-            
-            save_progress.close()
-            
-            # เสร็จสิ้น
-            total_images = len(result_images)
-            self.log_message(f"แบ่งภาพเสร็จสิ้น {total_images} ส่วน บันทึกที่: {output_dir}")
-            
-            return True
+            def update_progress(value, maximum, label):
+                save_progress.setMaximum(maximum)
+                save_progress.setValue(value)
+                save_progress.setLabelText(label)
+
+            result = {"value": None}
+            loop = QEventLoop()
+            worker = ImageExportWorker(
+                merged_img,
+                h_breakpoints,
+                v_breakpoints,
+                scale_factor,
+                output_dir,
+                episode_num,
+                source_name,
+                self.format_combo.currentText(),
+                self.quality_slider.value() if hasattr(self, 'quality_slider') else 90,
+                self,
+            )
+            self.export_worker = worker
+
+            def finish(export_result):
+                result["value"] = export_result
+                save_progress.close()
+                loop.quit()
+
+            save_progress.canceled.connect(worker.cancel)
+            worker.progress_changed.connect(update_progress)
+            worker.log_message.connect(self.log_message)
+            worker.export_finished.connect(finish)
+            worker.finished.connect(worker.deleteLater)
+
+            worker.start()
+            loop.exec()
+            self.export_worker = None
+
+            export_result = result["value"]
+            if export_result is None:
+                self.log_message("ยกเลิกการบันทึกไฟล์")
+                return False
+            if export_result.message:
+                self.log_message(export_result.message)
+            if export_result.success:
+                self.log_message(f"แบ่งภาพเสร็จสิ้น {export_result.total_images} ส่วน บันทึกที่: {export_result.output_dir}")
+            return export_result.success
             
         except Exception as e:
             self.log_message(f"เกิดข้อผิดพลาดในการแบ่งภาพ: {str(e)}")

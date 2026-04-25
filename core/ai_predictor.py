@@ -25,23 +25,22 @@ class AIPredictor:
         self.min_cut_distance = 1000
         self.safe_threshold = 0.85
         
-        self.test_transforms = None
+        self.input_width = 512
+        self.mean = None
+        self.std = None
 
     def _init_torch(self):
-        """โหลดตัวแปร device และ transforms"""
+        """โหลดตัวแปร device และ normalization tensors"""
         if not TORCH_AVAILABLE:
             return False
             
         try:
             import torch
-            from torchvision import transforms
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            self.test_transforms = transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.Resize((self.slice_height, 512)),
-                transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-            ])
+            self.mean = torch.tensor([0.485, 0.456, 0.406], dtype=torch.float32).view(1, 3, 1, 1)
+            self.std = torch.tensor([0.229, 0.224, 0.225], dtype=torch.float32).view(1, 3, 1, 1)
+            self.mean = self.mean.to(self.device)
+            self.std = self.std.to(self.device)
             return True
         except Exception as e:
             print(f"Error initializing PyTorch environment: {e}")
@@ -70,8 +69,27 @@ class AIPredictor:
             return True, "โหลดโมเดลสำเร็จ"
         except Exception as e:
             return False, f"โหลดโมเดลล้มเหลว: {str(e)}"
+
+    def _make_batch_tensor(self, img, y_batch):
+        """Create a normalized tensor batch without per-window PIL/torchvision transforms."""
+        import torch
+
+        batch_np = np.empty(
+            (len(y_batch), self.slice_height, self.input_width, 3),
+            dtype=np.float32,
+        )
+        for idx, start_y in enumerate(y_batch):
+            window = img[start_y:start_y + self.slice_height, :]
+            # Equivalent output size to transforms.Resize((slice_height, 512)).
+            resized = cv2.resize(window, (self.input_width, self.slice_height), interpolation=cv2.INTER_LINEAR)
+            batch_np[idx] = resized
+
+        batch_np *= 1.0 / 255.0
+        batch_stack = torch.from_numpy(batch_np).permute(0, 3, 1, 2).contiguous()
+        batch_stack = batch_stack.to(self.device)
+        return (batch_stack - self.mean) / self.std
             
-    def predict_cut_points(self, pil_image, progress_callback=None):
+    def predict_cut_points(self, pil_image, progress_callback=None, cancel_callback=None):
         """รับภาพรวม (PIL Image) แล้วคืนค่าพิกัดตัด (List[int]) ของเส้นแนวนอน"""
         if not self.is_loaded:
             success, msg = self.load_model()
@@ -102,9 +120,7 @@ class AIPredictor:
                 return True, [], "ภาพสั้นเกินไป ไม่จำเป็นต้องหาจุดตัด"
                 
             scores = []
-            batch_size = 64
-            batch_tensors = []
-            batch_y = []
+            batch_size = 128 if self.device and self.device.type == "cuda" else 64
             
             total_steps = len(y_starts)
             step_count = 0
@@ -112,25 +128,27 @@ class AIPredictor:
             # รูดแว่นขยายทีละ Batch ส่งการ์ดจอ
             if TORCH_AVAILABLE: # ป้องกันตัวแปร torch แดง
                 import torch
-                with torch.no_grad():
-                    for start_y in y_starts:
-                        window = img[start_y:start_y + self.slice_height, :]
-                        
-                        if window.shape[1] != self.target_width:
-                            window = cv2.resize(window, (self.target_width, self.slice_height))
-                            
-                        window_t = self.test_transforms(window)
-                        batch_tensors.append(window_t)
-                        batch_y.append(start_y)
-                        
-                        step_count += 1
-                        # อัพเดท Progress Bar 0-80% ระหว่างสแกนภาพ
-                        if progress_callback and step_count % batch_size == 0:
-                            progress_callback(int((step_count / total_steps) * 80))
-                        
-                        if len(batch_tensors) == batch_size or start_y == y_starts[-1]:
-                            batch_stack = torch.stack(batch_tensors).to(self.device)
-                            outputs = self.model(batch_stack)
+                use_amp = (
+                    self.device.type == "cuda"
+                    and hasattr(torch, "amp")
+                    and hasattr(torch.amp, "autocast")
+                )
+                with torch.inference_mode():
+                    batch_start = 0
+                    while batch_start < total_steps:
+                        if cancel_callback and cancel_callback():
+                            return False, [], "ยกเลิกการวิเคราะห์ AI"
+
+                        batch_y = y_starts[batch_start:batch_start + batch_size]
+                        try:
+                            batch_stack = self._make_batch_tensor(img, batch_y)
+
+                            if use_amp:
+                                with torch.amp.autocast("cuda"):
+                                    outputs = self.model(batch_stack)
+                            else:
+                                outputs = self.model(batch_stack)
+
                             probs = torch.softmax(outputs, dim=1)
                             
                             # ใช้ Class 1 = Safe Score
@@ -138,10 +156,23 @@ class AIPredictor:
                             
                             for i, p in enumerate(safe_probs):
                                 scores.append((batch_y[i] + (self.slice_height // 2), p))
-                                
-                            batch_tensors = []
-                            batch_y = []
-                        
+
+                            step_count += len(batch_y)
+                            batch_start += len(batch_y)
+                            if progress_callback:
+                                progress_callback(int((step_count / total_steps) * 80))
+
+                            del batch_stack, outputs, probs
+                        except RuntimeError as exc:
+                            if self.device.type == "cuda" and "out of memory" in str(exc).lower() and batch_size > 8:
+                                torch.cuda.empty_cache()
+                                batch_size = max(8, batch_size // 2)
+                                continue
+                            raise
+
+            if not scores:
+                return False, [], "ไม่สามารถสร้างผลการวิเคราะห์จากโมเดลได้"
+
             if progress_callback:
                 progress_callback(90)
                 
