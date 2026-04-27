@@ -227,26 +227,7 @@ def run_dry_run(args, roots_jobs):
             print("        " + " ".join(f'"{part}"' if " " in str(part) else str(part) for part in command))
 
 
-def main(argv=None):
-    args = parse_args(argv or sys.argv[1:])
-
-    try:
-        roots = resolve_roots(args)
-        roots_jobs = []
-        for root in roots:
-            resolved_root, jobs = collect_jobs_for_root(
-                root=root,
-                output_dir_name=args.output_dir_name,
-                recursive=args.recursive,
-                overwrite=args.overwrite,
-                keep_originals=args.keep_originals,
-            )
-            jobs, state = apply_resume_filter(resolved_root, jobs, args.resume)
-            roots_jobs.append((resolved_root, jobs, state))
-    except ValueError as exc:
-        print(f"[ERROR] {exc}")
-        return 2
-
+def run_prepared_jobs(args, roots_jobs):
     total_jobs = sum(len(jobs) for _, jobs, _ in roots_jobs)
     if total_jobs == 0:
         print("ไม่พบไฟล์ที่ต้อง upscale หรือถูกข้ามทั้งหมด")
@@ -341,6 +322,34 @@ def main(argv=None):
                 print(f"    {error}")
         return 1
     return 0
+
+
+def build_roots_jobs(args):
+    roots = resolve_roots(args)
+    roots_jobs = []
+    for root in roots:
+        resolved_root, jobs = collect_jobs_for_root(
+            root=root,
+            output_dir_name=args.output_dir_name,
+            recursive=args.recursive,
+            overwrite=args.overwrite,
+            keep_originals=args.keep_originals,
+        )
+        jobs, state = apply_resume_filter(resolved_root, jobs, args.resume)
+        roots_jobs.append((resolved_root, jobs, state))
+    return roots_jobs
+
+
+def main(argv=None):
+    args = parse_args(argv or sys.argv[1:])
+
+    try:
+        roots_jobs = build_roots_jobs(args)
+    except ValueError as exc:
+        print(f"[ERROR] {exc}")
+        return 2
+
+    return run_prepared_jobs(args, roots_jobs)
 
 
 if __name__ == "__main__":
