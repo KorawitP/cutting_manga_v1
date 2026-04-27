@@ -265,12 +265,38 @@ class ManualImageSplitter(QMainWindow):
         self.use_ai_checkbox.setChecked(self.settings.value("use_ai", True, type=bool))
         self.use_ai_checkbox.stateChanged.connect(lambda state: self.settings.setValue("use_ai", bool(state)))
         ai_layout.addWidget(self.use_ai_checkbox)
+
+        ai_model_layout = QHBoxLayout()
+        ai_model_label = QLabel("ไฟล์โมเดล AI:")
+        ai_model_layout.addWidget(ai_model_label)
+
+        self.ai_model_path_edit = QLineEdit()
+        self.ai_model_path_edit.setReadOnly(True)
+        self.ai_model_path_edit.setPlaceholderText("ค่าเริ่มต้น: best_classifier.pth")
+        current_ai_model = self.settings.value("ai_model_path", "")
+        self.ai_model_path_edit.setText(current_ai_model)
+        ai_model_layout.addWidget(self.ai_model_path_edit)
+
+        self.ai_model_browse_btn = ModernButton("เลือก..", self, None, self.theme["accent"])
+        self.ai_model_browse_btn.clicked.connect(self.browse_ai_model_file)
+        ai_model_layout.addWidget(self.ai_model_browse_btn)
+
+        self.ai_model_reset_btn = ModernButton("ค่าเริ่มต้น", self, None, self.theme["secondary"])
+        self.ai_model_reset_btn.clicked.connect(self.reset_ai_model_file)
+        ai_model_layout.addWidget(self.ai_model_reset_btn)
+
+        ai_layout.addLayout(ai_model_layout)
         
         settings_layout.addWidget(ai_group)
         
         # ตั้งค่าที่เก็บ Dataset สำหรับเทรน AI
         dataset_group = QGroupBox("การจัดเก็บข้อมูลเทรน AI (Dataset)")
         dataset_layout = QVBoxLayout(dataset_group)
+
+        self.save_dataset_checkbox = QCheckBox("เก็บ Dataset สำหรับเทรน AI")
+        self.save_dataset_checkbox.setChecked(self.settings.value("save_dataset", False, type=bool))
+        self.save_dataset_checkbox.stateChanged.connect(self.on_save_dataset_changed)
+        dataset_layout.addWidget(self.save_dataset_checkbox)
         
         dataset_path_layout = QHBoxLayout()
         dataset_path_label = QLabel("โฟลเดอร์ Dataset:")
@@ -291,6 +317,7 @@ class ManualImageSplitter(QMainWindow):
         dataset_path_layout.addWidget(self.dataset_browse_btn)
         
         dataset_layout.addLayout(dataset_path_layout)
+        self.update_dataset_controls_enabled()
         settings_layout.addWidget(dataset_group)
         
         settings_layout.addStretch()
@@ -306,6 +333,13 @@ class ManualImageSplitter(QMainWindow):
         if hasattr(sys, '_MEIPASS'):
             return os.path.join(sys._MEIPASS, relative_path)
         return os.path.join(os.path.abspath("."), relative_path)
+
+    def get_ai_model_path(self):
+        """คืน path โมเดล AI ที่ผู้ใช้เลือก หรือ fallback เป็น best_classifier.pth"""
+        custom_path = self.settings.value("ai_model_path", "", type=str).strip()
+        if custom_path:
+            return custom_path
+        return self.get_resource_path("best_classifier.pth")
 
     def reset_files(self):
         """ล้างรายการไฟล์"""
@@ -430,6 +464,50 @@ class ManualImageSplitter(QMainWindow):
             self.dataset_path_edit.setText(folder)
             self.settings.setValue("dataset_path", folder)
             self.log_message(f"เปลี่ยนโฟลเดอร์ Dataset เป็น: {folder}")
+
+    def on_save_dataset_changed(self, state):
+        """บันทึกสถานะการเก็บ Dataset และเปิด/ปิดช่องตั้งค่าที่เกี่ยวข้อง"""
+        enabled = bool(state)
+        self.settings.setValue("save_dataset", enabled)
+        self.update_dataset_controls_enabled()
+        if enabled:
+            self.log_message("เปิดการเก็บ Dataset สำหรับเทรน AI")
+        else:
+            self.log_message("ปิดการเก็บ Dataset สำหรับเทรน AI")
+
+    def update_dataset_controls_enabled(self):
+        """เปิดปุ่มเลือกโฟลเดอร์ Dataset เฉพาะเมื่อเปิดโหมดเก็บ Dataset"""
+        enabled = self.save_dataset_checkbox.isChecked()
+        self.dataset_path_edit.setEnabled(enabled)
+        self.dataset_browse_btn.setEnabled(enabled)
+
+    def browse_ai_model_file(self):
+        """เลือกไฟล์โมเดล AI สำหรับทำนายจุดตัด"""
+        start_dir = self.ai_model_path_edit.text() or self.get_resource_path("best_classifier.pth")
+        if os.path.isfile(start_dir):
+            start_dir = os.path.dirname(start_dir)
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "เลือกไฟล์โมเดล AI",
+            start_dir,
+            "PyTorch Model (*.pth *.pt);;All Files (*)"
+        )
+
+        if file_path:
+            self.ai_model_path_edit.setText(file_path)
+            self.settings.setValue("ai_model_path", file_path)
+            self.ai_predictor = None
+            self.ai_weights_path = None
+            self.log_message(f"เปลี่ยนไฟล์โมเดล AI เป็น: {file_path}")
+
+    def reset_ai_model_file(self):
+        """กลับไปใช้โมเดลค่าเริ่มต้น best_classifier.pth"""
+        self.ai_model_path_edit.clear()
+        self.settings.setValue("ai_model_path", "")
+        self.ai_predictor = None
+        self.ai_weights_path = None
+        self.log_message("เปลี่ยนไฟล์โมเดล AI กลับเป็นค่าเริ่มต้น: best_classifier.pth")
 
     def validate_save_settings(self):
         """ตรวจสอบความถูกต้องของการตั้งค่าการบันทึก"""
@@ -561,12 +639,12 @@ class ManualImageSplitter(QMainWindow):
             
             # --- แทรกขั้นตอนวิเคราะห์จุดตัดด้วย AI ---
             ai_cut_ys = None
-            # ใช้ get_resource_path เพื่อให้หาโมเดลเจอไม่ว่าจะอยู่ข้างนอกหรือถูกแพ็คใน EXE
-            weights_path = self.get_resource_path("best_classifier.pth")
+            weights_path = self.get_ai_model_path()
             use_ai = self.settings.value("use_ai", True, type=bool)
             
             if use_ai and os.path.exists(weights_path):
-                self.log_message("พบไฟล์เบาะแส AI: กำลังรันโมเดลทำนายจุดตัด...")
+                self.log_message(f"พบไฟล์โมเดล AI: {weights_path}")
+                self.log_message("กำลังรันโมเดลทำนายจุดตัด...")
                 success, predicted_ys, msg = self.run_ai_prediction(merged_img, weights_path)
                 if success:
                     ai_cut_ys = predicted_ys
@@ -577,7 +655,7 @@ class ManualImageSplitter(QMainWindow):
                 if not use_ai:
                     self.log_message("ข้ามการวิเคราะห์ AI (ผู้ใช้ปิดการใช้งานในหน้าตั้งค่า)")
                 else:
-                    self.log_message("ข้ามการวิเคราะห์ AI (ไม่พบไฟล์ best_classifier.pth)")
+                    self.log_message(f"ข้ามการวิเคราะห์ AI (ไม่พบไฟล์โมเดล: {weights_path})")
             # ------------------------------------
             
             # แสดงหน้าต่างแบ่งภาพ
@@ -589,7 +667,10 @@ class ManualImageSplitter(QMainWindow):
                 scale_factor = dialog.get_scale_factor()
                 hard_cases = dialog.get_hard_cases()
                 if hard_cases["0_unsafe"] or hard_cases["1_safe"]:
-                    self.save_hard_cases(merged_img, hard_cases)
+                    if self.save_dataset_checkbox.isChecked():
+                        self.save_hard_cases(merged_img, hard_cases)
+                    else:
+                        self.log_message("ข้ามการบันทึก Dataset (ผู้ใช้ไม่ได้เปิดโหมดเก็บ Dataset)")
                     
                 if h_breakpoints or v_breakpoints:
                     success = self.split_at_breakpoints(merged_img, h_breakpoints, v_breakpoints, scale_factor, output_dir, episode_num)

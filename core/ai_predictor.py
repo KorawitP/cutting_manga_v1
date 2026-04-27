@@ -22,8 +22,8 @@ class AIPredictor:
         self.slice_height = 256
         self.target_width = 720
         self.stride = 32
-        self.min_cut_distance = 1000
-        self.safe_threshold = 0.85
+        self.min_cut_distance = 300
+        self.safe_threshold = 0.90
         
         self.input_width = 512
         self.mean = None
