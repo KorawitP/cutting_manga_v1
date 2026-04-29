@@ -20,10 +20,17 @@ from main import (
 CONTENT_FILTER_RESULT_DIR = "_content_filter_result"
 CONTENT_FILTER_KEEP_DIR = "keep"
 DEFAULT_KEEP_OUTPUT_DIR_NAME = "keep_enhanced"
+DEFAULT_SCALE = 2
+DEFAULT_TILE = 256
+DEFAULT_EXISTING = "skip"
 
 
 def clean_path(value: str) -> Path:
-    return Path(value.strip().strip('"').strip("'")).expanduser().resolve()
+    return Path(clean_input(value).strip('"').strip("'")).expanduser().resolve()
+
+
+def clean_input(value: str) -> str:
+    return value.strip().lstrip("\ufeff")
 
 
 def image_files(folder: Path) -> list[Path]:
@@ -37,7 +44,7 @@ def image_files(folder: Path) -> list[Path]:
 
 def ask_path(prompt: str) -> Path:
     while True:
-        value = input(prompt).strip()
+        value = clean_input(input(prompt))
         if not value:
             print("กรุณาใส่ path")
             continue
@@ -50,19 +57,31 @@ def ask_path(prompt: str) -> Path:
 def ask_choice(prompt: str, choices: dict[str, str], default: str) -> str:
     print(prompt)
     for key, label in choices.items():
-        marker = " (default)" if key == default else ""
+        marker = " [ค่าแนะนำ]" if key == default else ""
         print(f"  {key}. {label}{marker}")
 
     while True:
-        value = input("> ").strip() or default
+        value = clean_input(input("> ")) or default
         if value in choices:
             return value
         print("เลือกไม่ถูกต้อง ลองใหม่")
 
 
+def ask_confirm(prompt: str, default: bool = True) -> bool:
+    suffix = "[Y/n]" if default else "[y/N]"
+    value = clean_input(input(f"{prompt} {suffix}: ")).lower()
+    if not value:
+        return default
+    if value in {"n", "no", "0", "ไม่", "ยกเลิก"}:
+        return False
+    if value in {"y", "yes", "1", "ใช่", "เริ่ม"} or value.endswith("y"):
+        return True
+    return default
+
+
 def ask_int(prompt: str, default: int, choices: set[int] | None = None) -> int:
     while True:
-        value = input(f"{prompt} [{default}]: ").strip()
+        value = clean_input(input(f"{prompt} [{default}]: "))
         if not value:
             return default
         try:
@@ -74,6 +93,27 @@ def ask_int(prompt: str, default: int, choices: set[int] | None = None) -> int:
             print(f"เลือกได้เฉพาะ: {', '.join(str(choice) for choice in sorted(choices))}")
             continue
         return parsed
+
+
+def choose_path_for_mode(mode: str) -> Path:
+    prompt = "\nใส่ path โฟลเดอร์ตอน: " if mode == "episode" else "\nใส่ path โฟลเดอร์เรื่อง: "
+    return ask_path(prompt)
+
+
+def default_namespace(source: str, mode: str, path: Path, existing: str = DEFAULT_EXISTING) -> Namespace:
+    return Namespace(
+        path=path,
+        mode=mode,
+        source=source,
+        existing=existing,
+        in_place=False,
+        output_dir_name=DEFAULT_KEEP_OUTPUT_DIR_NAME if source == "content-filter" else DEFAULT_OUTPUT_DIR_NAME,
+        scale=DEFAULT_SCALE,
+        model=DEFAULT_MODEL,
+        tile=DEFAULT_TILE,
+        engine=None,
+        dry_run=False,
+    )
 
 
 def discover_episode_dirs(root: Path) -> list[Path]:
@@ -236,37 +276,40 @@ def print_plan(args: argparse.Namespace, queues: list[tuple[Path, list[Job], dic
     print(f"images: {total}")
 
 
-def run_interactive() -> int:
-    print("=" * 60)
-    print("Manga Enhancer CLI")
-    print("เพิ่มความชัดภาพ และทำงานต่อจาก content_filter_cli ได้")
-    print("=" * 60)
+def run_enhance_flow(args: Namespace) -> int:
+    queues = build_queues(args)
+    print_plan(args, queues)
+    if not ask_confirm("\nเริ่มทำงาน?", True):
+        print("ยกเลิก")
+        return 0
+    return run_prepared_jobs(make_runtime_args(args), queues)
 
+
+def configure_interactive() -> Namespace:
+    print("\nตั้งค่า Manga Enhancer")
     source_choice = ask_choice(
-        "\nต้องการเพิ่มความชัดจากแหล่งไหน?",
+        "\nแหล่งรูปภาพ",
         {
             "1": "ผล content_filter_cli (_content_filter_result\\keep)",
             "2": "โฟลเดอร์ภาพทั่วไป",
         },
         "1",
     )
-    source = "content-filter" if source_choice == "1" else "images"
+    source = {"1": "content-filter", "2": "images"}[source_choice]
 
     mode_choice = ask_choice(
-        "\nต้องการประมวลผลแบบไหน?",
+        "\nชนิดโฟลเดอร์",
         {
-            "1": "โฟลเดอร์ตอนเดียว",
-            "2": "โฟลเดอร์เรื่องที่มีหลายตอน",
+            "1": "โฟลเดอร์เรื่อง มีหลายตอน",
+            "2": "โฟลเดอร์ตอนเดียว",
         },
-        "2",
+        "1",
     )
-    mode = "episode" if mode_choice == "1" else "story"
-
-    prompt = "\nใส่ path โฟลเดอร์ตอน: " if mode == "episode" else "\nใส่ path โฟลเดอร์เรื่อง: "
-    path = ask_path(prompt)
+    mode = {"1": "story", "2": "episode"}[mode_choice]
+    path = choose_path_for_mode(mode)
 
     output_choice = ask_choice(
-        "\nต้องการเขียนผลลัพธ์แบบไหน?",
+        "\nเขียนผลลัพธ์แบบไหน",
         {
             "1": "สร้างโฟลเดอร์ผลลัพธ์ใหม่ ปลอดภัย ไม่ทับต้นฉบับ",
             "2": "ทับไฟล์เดิมแบบ in-place",
@@ -276,24 +319,33 @@ def run_interactive() -> int:
     in_place = output_choice == "2"
     output_dir_name = DEFAULT_KEEP_OUTPUT_DIR_NAME if source == "content-filter" else DEFAULT_OUTPUT_DIR_NAME
     if not in_place:
-        custom_output = input(f"\nชื่อโฟลเดอร์ผลลัพธ์ [{output_dir_name}]: ").strip()
+        custom_output = clean_input(input(f"\nชื่อโฟลเดอร์ผลลัพธ์ [{output_dir_name}]: "))
         if custom_output:
             output_dir_name = custom_output
 
     existing = ask_choice(
         "\nถ้ามีผลลัพธ์เดิม/เคยทำแล้วให้ทำอย่างไร?",
         {
-            "skip": "ข้ามของเดิม",
-            "overwrite": "ลบผลเก่าแล้วทำใหม่",
-            "resume": "ข้ามไฟล์ที่ state บอกว่าทำสำเร็จแล้ว",
+            "1": "ข้ามของเดิม",
+            "2": "ลบผลเก่าแล้วทำใหม่",
+            "3": "ข้ามไฟล์ที่ state บอกว่าทำสำเร็จแล้ว",
         },
-        "skip",
+        "1",
     )
+    existing = {"1": "skip", "2": "overwrite", "3": "resume"}[existing]
 
-    scale = ask_int("\nscale", 2, {2, 3, 4})
-    tile = ask_int("tile", 256)
+    scale = ask_int("\nscale", DEFAULT_SCALE, {2, 3, 4})
+    tile = ask_int("tile", DEFAULT_TILE)
+    dry_run = ask_choice(
+        "\nโหมดตรวจรายการก่อนทำงานจริง",
+        {
+            "1": "ไม่ ใช้งานจริงทันที",
+            "2": "ใช่ แสดงรายการอย่างเดียว",
+        },
+        "1",
+    ) == "2"
 
-    args = Namespace(
+    return Namespace(
         path=path,
         mode=mode,
         source=source,
@@ -304,17 +356,69 @@ def run_interactive() -> int:
         model=DEFAULT_MODEL,
         tile=tile,
         engine=None,
-        dry_run=False,
+        dry_run=dry_run,
     )
 
-    queues = build_queues(args)
-    print_plan(args, queues)
-    confirm = input("\nเริ่มทำงาน? [Y/n]: ").strip().lower()
-    if confirm not in ("", "y", "yes"):
-        print("ยกเลิก")
-        return 0
 
-    return run_prepared_jobs(make_runtime_args(args), queues)
+def print_default_settings() -> None:
+    args = default_namespace("content-filter", "story", Path("."))
+    print("\nค่าแนะนำ")
+    print("-" * 60)
+    print("source: ผล content_filter_cli (_content_filter_result\\keep)")
+    print("mode: โฟลเดอร์เรื่อง มีหลายตอน")
+    print(f"output: {args.output_dir_name} (ไม่ทับต้นฉบับ)")
+    print(f"existing: {DEFAULT_EXISTING} (ข้ามผลลัพธ์เดิม)")
+    print(f"model: {DEFAULT_MODEL}")
+    print(f"scale: {DEFAULT_SCALE}")
+    print(f"tile: {DEFAULT_TILE}")
+
+
+def run_interactive() -> int:
+    print("=" * 60)
+    print("Manga Enhancer CLI")
+    print("เพิ่มความชัดภาพ และทำงานต่อจาก content_filter_cli ได้")
+    print("=" * 60)
+
+    while True:
+        menu = ask_choice(
+            "\nเมนูหลัก",
+            {
+                "1": "ผล content_filter: เรื่องหลายตอน ข้ามของเดิม",
+                "2": "ผล content_filter: เรื่องหลายตอน ลบผลเก่าแล้วทำใหม่",
+                "3": "ภาพทั่วไป: เรื่องหลายตอน ข้ามของเดิม",
+                "4": "ภาพทั่วไป: เรื่องหลายตอน ลบผลเก่าแล้วทำใหม่",
+                "5": "ตอนเดียว",
+                "6": "ตั้งค่าก่อนทำงาน",
+                "7": "ดูค่าแนะนำ",
+                "0": "ออก",
+            },
+            "1",
+        )
+        if menu == "0":
+            return 0
+        if menu == "1":
+            return run_enhance_flow(default_namespace("content-filter", "story", choose_path_for_mode("story")))
+        if menu == "2":
+            return run_enhance_flow(default_namespace("content-filter", "story", choose_path_for_mode("story"), existing="overwrite"))
+        if menu == "3":
+            return run_enhance_flow(default_namespace("images", "story", choose_path_for_mode("story")))
+        if menu == "4":
+            return run_enhance_flow(default_namespace("images", "story", choose_path_for_mode("story"), existing="overwrite"))
+        if menu == "5":
+            source_choice = ask_choice(
+                "\nแหล่งรูปภาพ",
+                {
+                    "1": "ผล content_filter_cli (_content_filter_result\\keep)",
+                    "2": "โฟลเดอร์ภาพทั่วไป",
+                },
+                "1",
+            )
+            source = {"1": "content-filter", "2": "images"}[source_choice]
+            return run_enhance_flow(default_namespace(source, "episode", choose_path_for_mode("episode")))
+        if menu == "6":
+            return run_enhance_flow(configure_interactive())
+        if menu == "7":
+            print_default_settings()
 
 
 def build_queues(args: argparse.Namespace) -> list[tuple[Path, list[Job], dict]]:
