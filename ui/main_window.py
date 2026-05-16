@@ -9,12 +9,12 @@ from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout,
                            QFileDialog, QLabel, QMessageBox, QHBoxLayout, 
                            QProgressDialog, QProgressBar, QGroupBox, QLineEdit, 
                            QSlider, QComboBox, QTabWidget, QStatusBar, QStyle, 
-                           QApplication, QDialog, QCheckBox)
+                           QCheckBox, QStackedWidget)
 from PySide6.QtGui import QPixmap, QImage
-from PySide6.QtCore import Qt, QSettings, QEventLoop
+from PySide6.QtCore import Qt, QSettings
 
 from ui.ui_components import ModernStyle, ModernButton
-from ui.split_dialog import ManualSplitDialog
+from ui.split_workspace import ManualSplitWorkspace
 from ui.workers import AIPredictionWorker, ImageExportWorker, ImageMergeWorker
 from core.ai_predictor import AIPredictor
 from core.image_ops import save_hard_case_slices
@@ -52,6 +52,13 @@ class ManualImageSplitter(QMainWindow):
         self.ai_worker = None
         self.merge_worker = None
         self.export_worker = None
+        self.progress_dialog = None
+        self.split_workspace = None
+        self.current_merged_img = None
+        self.current_pixmap = None
+        self.current_output_dir = None
+        self.current_episode_num = None
+        self.current_ai_cut_ys = None
         
         # ตั้งค่าเริ่มต้นสำหรับการบันทึก
         self.default_output_path = ""
@@ -69,8 +76,14 @@ class ManualImageSplitter(QMainWindow):
     
     def setup_ui(self):
         """ตั้งค่าอินเตอร์เฟซผู้ใช้"""
-        main_widget = QWidget()
-        self.setCentralWidget(main_widget)
+        self.stack = QStackedWidget()
+        self.setCentralWidget(self.stack)
+
+        self.home_page = QWidget()
+        self.stack.addWidget(self.home_page)
+        self.stack.setCurrentWidget(self.home_page)
+
+        main_widget = self.home_page
         main_layout = QVBoxLayout(main_widget)
         main_layout.setSpacing(15)
         main_layout.setContentsMargins(20, 20, 20, 20)
@@ -327,6 +340,244 @@ class ManualImageSplitter(QMainWindow):
         tab_widget.addTab(settings_tab, "ตั้งค่า")
         
         main_layout.addWidget(tab_widget)
+
+    def return_to_home_page(self):
+        if hasattr(self, "stack") and hasattr(self, "home_page"):
+            self.stack.setCurrentWidget(self.home_page)
+        if self.split_workspace is not None:
+            self.stack.removeWidget(self.split_workspace)
+            self.split_workspace.deleteLater()
+            self.split_workspace = None
+        self.current_pixmap = None
+        self.current_ai_cut_ys = None
+
+    def show_split_workspace(self, pixmap, initial_h_lines=None):
+        if self.split_workspace is not None:
+            self.stack.removeWidget(self.split_workspace)
+            self.split_workspace.deleteLater()
+
+        self.split_workspace = ManualSplitWorkspace(self, pixmap=pixmap, initial_h_lines=initial_h_lines)
+        self.split_workspace.accepted.connect(self.on_split_workspace_accepted)
+        self.split_workspace.cancelled.connect(self.on_split_workspace_cancelled)
+        self.stack.addWidget(self.split_workspace)
+        self.stack.setCurrentWidget(self.split_workspace)
+        self.split_workspace.view.setFocus()
+        self.statusBar.showMessage("กำลังแบ่งภาพด้วยตนเอง", 3000)
+
+    def on_split_workspace_accepted(self):
+        if self.split_workspace is None or self.current_merged_img is None:
+            self.return_to_home_page()
+            return
+
+        h_breakpoints = self.split_workspace.get_horizontal_breakpoints()
+        v_breakpoints = self.split_workspace.get_vertical_breakpoints()
+        scale_factor = self.split_workspace.get_scale_factor()
+        hard_cases = self.split_workspace.get_hard_cases()
+
+        if hard_cases["0_unsafe"] or hard_cases["1_safe"]:
+            if self.save_dataset_checkbox.isChecked():
+                self.save_hard_cases(self.current_merged_img, hard_cases)
+            else:
+                self.log_message("ข้ามการบันทึก Dataset (ผู้ใช้ไม่ได้เปิดโหมดเก็บ Dataset)")
+
+        if h_breakpoints or v_breakpoints:
+            self.start_export_worker(
+                self.current_merged_img,
+                h_breakpoints,
+                v_breakpoints,
+                scale_factor,
+                self.current_output_dir,
+                self.current_episode_num,
+            )
+            return
+
+        self.log_message("ไม่มีจุดตัดที่ผู้ใช้กำหนด")
+        self.return_to_home_page()
+        gc.collect()
+
+    def on_split_workspace_cancelled(self):
+        self.log_message("ยกเลิกการแบ่งภาพด้วยตนเอง")
+        self.return_to_home_page()
+        self.set_workflow_busy(False, "พร้อมใช้งาน")
+        self.current_merged_img = None
+        gc.collect()
+
+    def start_merge_worker(self, output_dir, episode_num):
+        self.progress_dialog = QProgressDialog("กำลังเตรียมภาพ...", "ยกเลิก", 0, len(self.image_files), self)
+        self.progress_dialog.setWindowModality(Qt.WindowModal)
+        self.progress_dialog.setMinimumDuration(0)
+
+        self.log_message("\nกำลังรวมภาพทั้งหมดเข้าด้วยกัน...")
+        self.set_workflow_busy(True, "กำลังรวมภาพ...")
+
+        worker = ImageMergeWorker(self.image_files, self)
+        self.merge_worker = worker
+
+        def update_progress(value, maximum, label):
+            if self.progress_dialog is None:
+                return
+            self.progress_dialog.setMaximum(maximum)
+            self.progress_dialog.setValue(value)
+            self.progress_dialog.setLabelText(label)
+
+        self.progress_dialog.canceled.connect(worker.cancel)
+        worker.progress_changed.connect(update_progress)
+        worker.log_message.connect(self.log_message)
+        worker.merge_finished.connect(self.on_merge_finished)
+        worker.finished.connect(worker.deleteLater)
+        worker.start()
+
+    def on_merge_finished(self, merged_img, message):
+        self.merge_worker = None
+        if self.progress_dialog is not None:
+            self.progress_dialog.close()
+            self.progress_dialog = None
+
+        if message:
+            self.log_message(f"เกิดข้อผิดพลาดในการรวมภาพ: {message}")
+            QMessageBox.critical(self, "ผิดพลาด", f"เกิดข้อผิดพลาดในการรวมภาพ: {message}")
+            self.set_workflow_busy(False, "พร้อมใช้งาน")
+            gc.collect()
+            return
+
+        if merged_img is None:
+            self.log_message("ยกเลิกการรวมภาพ")
+            self.set_workflow_busy(False, "พร้อมใช้งาน")
+            gc.collect()
+            return
+
+        self.current_merged_img = merged_img
+        self.statusBar.showMessage("กำลังเตรียมภาพสำหรับแสดงผล...")
+        self.current_pixmap = self.pil_image_to_pixmap(merged_img)
+
+        weights_path = self.get_ai_model_path()
+        use_ai = self.settings.value("use_ai", True, type=bool)
+        if use_ai and os.path.exists(weights_path):
+            self.log_message(f"พบไฟล์โมเดล AI: {weights_path}")
+            self.log_message("กำลังรันโมเดลทำนายจุดตัด...")
+            self.start_ai_prediction_worker(merged_img, weights_path)
+            return
+
+        if not use_ai:
+            self.log_message("ข้ามการวิเคราะห์ AI (ผู้ใช้ปิดการใช้งานในหน้าตั้งค่า)")
+        else:
+            self.log_message(f"ข้ามการวิเคราะห์ AI (ไม่พบไฟล์โมเดล: {weights_path})")
+
+        self.set_workflow_busy(False, "พร้อมแบ่งภาพ")
+        self.log_message("เปิดหน้าแบ่งภาพด้วยตนเอง...")
+        self.show_split_workspace(self.current_pixmap, initial_h_lines=None)
+
+    def start_ai_prediction_worker(self, merged_img, weights_path):
+        if self.ai_predictor is None or self.ai_weights_path != weights_path:
+            self.ai_predictor = AIPredictor(weights_path)
+            self.ai_weights_path = weights_path
+
+        self.progress_dialog = QProgressDialog("กำลังวิเคราะห์จุดตัดด้วย AI...", "ข้าม (Skip)", 0, 100, self)
+        self.progress_dialog.setWindowTitle("AI Guideline")
+        self.progress_dialog.setWindowModality(Qt.WindowModal)
+        self.progress_dialog.setMinimumDuration(0)
+        self.progress_dialog.setValue(0)
+
+        worker = AIPredictionWorker(self.ai_predictor, merged_img, self)
+        self.ai_worker = worker
+
+        self.progress_dialog.canceled.connect(worker.cancel)
+        worker.progress_changed.connect(self.progress_dialog.setValue)
+        worker.prediction_finished.connect(self.on_ai_prediction_finished)
+        worker.finished.connect(worker.deleteLater)
+        worker.start()
+
+    def on_ai_prediction_finished(self, success, cut_ys, message):
+        self.ai_worker = None
+        if self.progress_dialog is not None:
+            self.progress_dialog.close()
+            self.progress_dialog = None
+
+        if success:
+            self.current_ai_cut_ys = cut_ys
+            self.log_message(f"AI ทำนายสำเร็จ: {message}")
+        else:
+            self.current_ai_cut_ys = None
+            self.log_message(f"AI รันไม่สำเร็จ (ข้ามได้): {message}")
+
+        self.set_workflow_busy(False, "พร้อมแบ่งภาพ")
+        self.log_message("เปิดหน้าแบ่งภาพด้วยตนเอง...")
+        self.show_split_workspace(self.current_pixmap, initial_h_lines=self.current_ai_cut_ys)
+
+    def start_export_worker(self, merged_img, h_breakpoints, v_breakpoints, scale_factor, output_dir, episode_num):
+        source_name = os.path.splitext(os.path.basename(self.image_files[0]))[0]
+        total_parts = len(h_breakpoints) + 1 if h_breakpoints else 1
+
+        self.progress_dialog = QProgressDialog("กำลังบันทึกไฟล์...", "ยกเลิก", 0, total_parts, self)
+        self.progress_dialog.setWindowModality(Qt.WindowModal)
+        self.progress_dialog.setMinimumDuration(0)
+        self.set_workflow_busy(True, "กำลังบันทึกไฟล์...")
+
+        worker = ImageExportWorker(
+            merged_img,
+            h_breakpoints,
+            v_breakpoints,
+            scale_factor,
+            output_dir,
+            episode_num,
+            source_name,
+            self.format_combo.currentText(),
+            self.quality_slider.value() if hasattr(self, "quality_slider") else 90,
+            self,
+        )
+        self.export_worker = worker
+
+        def update_progress(value, maximum, label):
+            if self.progress_dialog is None:
+                return
+            self.progress_dialog.setMaximum(maximum)
+            self.progress_dialog.setValue(value)
+            self.progress_dialog.setLabelText(label)
+
+        self.progress_dialog.canceled.connect(worker.cancel)
+        worker.progress_changed.connect(update_progress)
+        worker.log_message.connect(self.log_message)
+        worker.export_finished.connect(self.on_export_finished)
+        worker.finished.connect(worker.deleteLater)
+        worker.start()
+
+    def on_export_finished(self, export_result):
+        self.export_worker = None
+        if self.progress_dialog is not None:
+            self.progress_dialog.close()
+            self.progress_dialog = None
+
+        self.set_workflow_busy(False, "พร้อมใช้งาน")
+
+        if export_result is None:
+            self.log_message("ยกเลิกการบันทึกไฟล์")
+            return
+
+        if export_result.message:
+            self.log_message(export_result.message)
+
+        if export_result.success:
+            self.log_message(
+                f"แบ่งภาพเสร็จสิ้น {export_result.total_images} ส่วน บันทึกที่: {export_result.output_dir}"
+            )
+            QMessageBox.information(self, "สำเร็จ", "แบ่งภาพเสร็จสิ้น")
+            self.return_to_home_page()
+            self.image_files = []
+            self.update_file_label()
+            self.log_message("รีเซ็ตรายการภาพหลังจากตัดเสร็จ")
+        else:
+            QMessageBox.critical(self, "ผิดพลาด", export_result.message or "บันทึกไฟล์ไม่สำเร็จ")
+
+        self.current_merged_img = None
+        gc.collect()
+
+    def set_workflow_busy(self, busy, message=None):
+        self.split_btn.setEnabled(not busy)
+        self.select_files_btn.setEnabled(not busy)
+        self.reset_btn.setEnabled(not busy)
+        self.browse_btn.setEnabled(not busy)
+        if message:
+            self.statusBar.showMessage(message)
     
     def get_resource_path(self, relative_path):
         """หาพาธของไฟล์ทรัพยากร ทั้งตอนรันโค้ดปกติและตอนเป็น EXE"""
@@ -557,41 +808,6 @@ class ManualImageSplitter(QMainWindow):
         
         print(message_with_time)
 
-    def run_ai_prediction(self, merged_img, weights_path):
-        """Run AI inference in a worker thread so the UI event loop stays responsive."""
-        if self.ai_predictor is None or self.ai_weights_path != weights_path:
-            self.ai_predictor = AIPredictor(weights_path)
-            self.ai_weights_path = weights_path
-
-        ai_progress = QProgressDialog("กำลังวิเคราะห์จุดตัดด้วย AI...", "ข้าม (Skip)", 0, 100, self)
-        ai_progress.setWindowTitle("AI Guideline")
-        ai_progress.setWindowModality(Qt.WindowModal)
-        ai_progress.setMinimumDuration(0)
-        ai_progress.setValue(0)
-
-        result = {"success": False, "cut_ys": [], "message": "ยกเลิกการวิเคราะห์ AI"}
-        loop = QEventLoop()
-        worker = AIPredictionWorker(self.ai_predictor, merged_img, self)
-        self.ai_worker = worker
-
-        def finish(success, cut_ys, message):
-            result["success"] = success
-            result["cut_ys"] = cut_ys
-            result["message"] = message
-            ai_progress.close()
-            loop.quit()
-
-        ai_progress.canceled.connect(worker.cancel)
-        worker.progress_changed.connect(ai_progress.setValue)
-        worker.prediction_finished.connect(finish)
-        worker.finished.connect(worker.deleteLater)
-
-        worker.start()
-        loop.exec()
-        self.ai_worker = None
-
-        return result["success"], result["cut_ys"], result["message"]
-
     def pil_image_to_pixmap(self, pil_image):
         """Convert a PIL image to QPixmap without PNG encode/decode overhead."""
         if pil_image.mode != "RGB":
@@ -615,109 +831,20 @@ class ManualImageSplitter(QMainWindow):
         # รับค่าจากช่องที่ผู้ใช้กรอก
         output_dir = self.output_path_edit.text().strip()
         episode_num = self.episode_edit.text().strip()
-        
+
+        self.current_output_dir = output_dir
+        self.current_episode_num = episode_num
+        self.current_merged_img = None
+        self.current_pixmap = None
+        self.current_ai_cut_ys = None
+
         try:
-            # แสดง progress dialog
-            progress = QProgressDialog("กำลังเตรียมภาพ...", "ยกเลิก", 0, len(self.image_files), self)
-            progress.setWindowModality(Qt.WindowModal)
-            progress.setMinimumDuration(0)
-            
-            # รวมภาพ
-            self.log_message("\nกำลังรวมภาพทั้งหมดเข้าด้วยกัน...")
-            merged_img = self.merge_all_images(progress)
-            
-            if merged_img is None or progress.wasCanceled():
-                return
-            
-            # แปลงเป็น QPixmap
-            progress.setLabelText("กำลังเตรียมภาพสำหรับแสดงผล...")
-            QApplication.processEvents()  # อัพเดท UI
-            
-            pixmap = self.pil_image_to_pixmap(merged_img)
-            
-            progress.close()
-            
-            # --- แทรกขั้นตอนวิเคราะห์จุดตัดด้วย AI ---
-            ai_cut_ys = None
-            weights_path = self.get_ai_model_path()
-            use_ai = self.settings.value("use_ai", True, type=bool)
-            
-            if use_ai and os.path.exists(weights_path):
-                self.log_message(f"พบไฟล์โมเดล AI: {weights_path}")
-                self.log_message("กำลังรันโมเดลทำนายจุดตัด...")
-                success, predicted_ys, msg = self.run_ai_prediction(merged_img, weights_path)
-                if success:
-                    ai_cut_ys = predicted_ys
-                    self.log_message(f"AI ทำนายสำเร็จ: {msg}")
-                else:
-                    self.log_message(f"AI รันไม่สำเร็จ (ข้ามได้): {msg}")
-            else:
-                if not use_ai:
-                    self.log_message("ข้ามการวิเคราะห์ AI (ผู้ใช้ปิดการใช้งานในหน้าตั้งค่า)")
-                else:
-                    self.log_message(f"ข้ามการวิเคราะห์ AI (ไม่พบไฟล์โมเดล: {weights_path})")
-            # ------------------------------------
-            
-            # แสดงหน้าต่างแบ่งภาพ
-            self.log_message("เปิดหน้าต่างแบ่งภาพด้วยตนเอง...")
-            dialog = ManualSplitDialog(self, pixmap, initial_h_lines=ai_cut_ys)
-            if dialog.exec() == QDialog.Accepted:
-                h_breakpoints = dialog.get_horizontal_breakpoints()
-                v_breakpoints = dialog.get_vertical_breakpoints()
-                scale_factor = dialog.get_scale_factor()
-                hard_cases = dialog.get_hard_cases()
-                if hard_cases["0_unsafe"] or hard_cases["1_safe"]:
-                    if self.save_dataset_checkbox.isChecked():
-                        self.save_hard_cases(merged_img, hard_cases)
-                    else:
-                        self.log_message("ข้ามการบันทึก Dataset (ผู้ใช้ไม่ได้เปิดโหมดเก็บ Dataset)")
-                    
-                if h_breakpoints or v_breakpoints:
-                    success = self.split_at_breakpoints(merged_img, h_breakpoints, v_breakpoints, scale_factor, output_dir, episode_num)
-                    if success:
-                        QMessageBox.information(self, "สำเร็จ", "แบ่งภาพเสร็จสิ้น")
-                        # รีเซ็ตรายการภาพหลังจากตัดเสร็จ
-                        self.reset_files()
-                        self.log_message("รีเซ็ตรายการภาพหลังจากตัดเสร็จ")
-        
+            self.start_merge_worker(output_dir, episode_num)
         except Exception as e:
             self.log_message(f"เกิดข้อผิดพลาด: {str(e)}")
             QMessageBox.critical(self, "ผิดพลาด", f"เกิดข้อผิดพลาด: {str(e)}")
-            
-        finally:
-            # ทำความสะอาดหน่วยความจำ
-            gc.collect()  # เรียก garbage collector
-
-    def merge_all_images(self, progress):
-        """รวมทุกภาพในแนวตั้งเป็นภาพเดียว"""
-        result = {"image": None, "message": ""}
-        loop = QEventLoop()
-        worker = ImageMergeWorker(self.image_files, self)
-        self.merge_worker = worker
-
-        def update_progress(value, maximum, label):
-            progress.setMaximum(maximum)
-            progress.setValue(value)
-            progress.setLabelText(label)
-
-        def finish(merged_img, message):
-            result["image"] = merged_img
-            result["message"] = message
-            loop.quit()
-
-        progress.canceled.connect(worker.cancel)
-        worker.progress_changed.connect(update_progress)
-        worker.log_message.connect(self.log_message)
-        worker.merge_finished.connect(finish)
-        worker.finished.connect(worker.deleteLater)
-
-        worker.start()
-        loop.exec()
-        self.merge_worker = None
-
-        if result["message"]:
-            self.log_message(f"เกิดข้อผิดพลาดในการรวมภาพ: {result['message']}")
-        return result["image"]
+            self.set_workflow_busy(False, "พร้อมใช้งาน")
+            gc.collect()
 
     def save_hard_cases(self, img, hard_cases):
         """บันทึกภาพ Hard Cases สำหรับนำไปเทรน AI ใหม่"""
@@ -728,66 +855,3 @@ class ManualImageSplitter(QMainWindow):
         except Exception as e:
             self.log_message(f"เตือน: ไม่สามารถบันทึก Hard Cases ได้: {str(e)}")
 
-    def split_at_breakpoints(self, merged_img, h_breakpoints, v_breakpoints, scale_factor=1.0, output_dir=None, episode_num=None):
-        """แบ่งภาพตามจุดตัดที่กำหนด"""
-        try:
-            if output_dir is None:
-                base_folder = os.path.dirname(self.image_files[0])
-                folder_name = os.path.splitext(os.path.basename(self.image_files[0]))[0]
-                output_dir = os.path.join(base_folder, f"split_results_{folder_name}")
-
-            source_name = os.path.splitext(os.path.basename(self.image_files[0]))[0]
-            total_parts = len(h_breakpoints) + 1 if h_breakpoints else 1
-            save_progress = QProgressDialog("กำลังบันทึกไฟล์...", "ยกเลิก", 0, total_parts, self)
-            save_progress.setWindowModality(Qt.WindowModal)
-            save_progress.setMinimumDuration(0)
-
-            def update_progress(value, maximum, label):
-                save_progress.setMaximum(maximum)
-                save_progress.setValue(value)
-                save_progress.setLabelText(label)
-
-            result = {"value": None}
-            loop = QEventLoop()
-            worker = ImageExportWorker(
-                merged_img,
-                h_breakpoints,
-                v_breakpoints,
-                scale_factor,
-                output_dir,
-                episode_num,
-                source_name,
-                self.format_combo.currentText(),
-                self.quality_slider.value() if hasattr(self, 'quality_slider') else 90,
-                self,
-            )
-            self.export_worker = worker
-
-            def finish(export_result):
-                result["value"] = export_result
-                save_progress.close()
-                loop.quit()
-
-            save_progress.canceled.connect(worker.cancel)
-            worker.progress_changed.connect(update_progress)
-            worker.log_message.connect(self.log_message)
-            worker.export_finished.connect(finish)
-            worker.finished.connect(worker.deleteLater)
-
-            worker.start()
-            loop.exec()
-            self.export_worker = None
-
-            export_result = result["value"]
-            if export_result is None:
-                self.log_message("ยกเลิกการบันทึกไฟล์")
-                return False
-            if export_result.message:
-                self.log_message(export_result.message)
-            if export_result.success:
-                self.log_message(f"แบ่งภาพเสร็จสิ้น {export_result.total_images} ส่วน บันทึกที่: {export_result.output_dir}")
-            return export_result.success
-            
-        except Exception as e:
-            self.log_message(f"เกิดข้อผิดพลาดในการแบ่งภาพ: {str(e)}")
-            return False
