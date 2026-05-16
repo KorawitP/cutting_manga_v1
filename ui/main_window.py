@@ -9,12 +9,13 @@ from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout,
                            QFileDialog, QLabel, QMessageBox, QHBoxLayout, 
                            QProgressDialog, QProgressBar, QGroupBox, QLineEdit, 
                            QSlider, QComboBox, QTabWidget, QStatusBar, QStyle, 
-                           QApplication, QDialog, QCheckBox)
+                           QApplication, QDialog, QCheckBox, QStackedWidget)
 from PySide6.QtGui import QPixmap, QImage
 from PySide6.QtCore import Qt, QSettings, QEventLoop
 
 from ui.ui_components import ModernStyle, ModernButton
 from ui.split_dialog import ManualSplitDialog
+from ui.split_workspace import ManualSplitWorkspace
 from ui.workers import AIPredictionWorker, ImageExportWorker, ImageMergeWorker
 from core.ai_predictor import AIPredictor
 from core.image_ops import save_hard_case_slices
@@ -52,6 +53,13 @@ class ManualImageSplitter(QMainWindow):
         self.ai_worker = None
         self.merge_worker = None
         self.export_worker = None
+        self.progress_dialog = None
+        self.split_workspace = None
+        self.current_merged_img = None
+        self.current_pixmap = None
+        self.current_output_dir = None
+        self.current_episode_num = None
+        self.current_ai_cut_ys = None
         
         # ตั้งค่าเริ่มต้นสำหรับการบันทึก
         self.default_output_path = ""
@@ -69,8 +77,14 @@ class ManualImageSplitter(QMainWindow):
     
     def setup_ui(self):
         """ตั้งค่าอินเตอร์เฟซผู้ใช้"""
-        main_widget = QWidget()
-        self.setCentralWidget(main_widget)
+        self.stack = QStackedWidget()
+        self.setCentralWidget(self.stack)
+
+        self.home_page = QWidget()
+        self.stack.addWidget(self.home_page)
+        self.stack.setCurrentWidget(self.home_page)
+
+        main_widget = self.home_page
         main_layout = QVBoxLayout(main_widget)
         main_layout.setSpacing(15)
         main_layout.setContentsMargins(20, 20, 20, 20)
@@ -327,6 +341,63 @@ class ManualImageSplitter(QMainWindow):
         tab_widget.addTab(settings_tab, "ตั้งค่า")
         
         main_layout.addWidget(tab_widget)
+
+    def return_to_home_page(self):
+        if hasattr(self, "stack") and hasattr(self, "home_page"):
+            self.stack.setCurrentWidget(self.home_page)
+        if self.split_workspace is not None:
+            self.stack.removeWidget(self.split_workspace)
+            self.split_workspace.deleteLater()
+            self.split_workspace = None
+        self.current_pixmap = None
+        self.current_ai_cut_ys = None
+
+    def show_split_workspace(self, pixmap, initial_h_lines=None):
+        if self.split_workspace is not None:
+            self.stack.removeWidget(self.split_workspace)
+            self.split_workspace.deleteLater()
+
+        self.split_workspace = ManualSplitWorkspace(self, pixmap=pixmap, initial_h_lines=initial_h_lines)
+        self.split_workspace.accepted.connect(self.on_split_workspace_accepted)
+        self.split_workspace.cancelled.connect(self.on_split_workspace_cancelled)
+        self.stack.addWidget(self.split_workspace)
+        self.stack.setCurrentWidget(self.split_workspace)
+        self.split_workspace.view.setFocus()
+        self.statusBar.showMessage("กำลังแบ่งภาพด้วยตนเอง", 3000)
+
+    def on_split_workspace_accepted(self):
+        pass
+
+    def on_split_workspace_cancelled(self):
+        self.log_message("ยกเลิกการแบ่งภาพด้วยตนเอง")
+        self.return_to_home_page()
+        gc.collect()
+
+    def start_merge_worker(self, output_dir, episode_num):
+        pass
+
+    def on_merge_finished(self, merged_img, message):
+        pass
+
+    def start_ai_prediction_worker(self, merged_img, weights_path):
+        pass
+
+    def on_ai_prediction_finished(self, success, cut_ys, message):
+        pass
+
+    def start_export_worker(self, merged_img, h_breakpoints, v_breakpoints, scale_factor, output_dir, episode_num):
+        pass
+
+    def on_export_finished(self, export_result):
+        pass
+
+    def set_workflow_busy(self, busy, message=None):
+        self.split_btn.setEnabled(not busy)
+        self.select_files_btn.setEnabled(not busy)
+        self.reset_btn.setEnabled(not busy)
+        self.browse_btn.setEnabled(not busy)
+        if message:
+            self.statusBar.showMessage(message)
     
     def get_resource_path(self, relative_path):
         """หาพาธของไฟล์ทรัพยากร ทั้งตอนรันโค้ดปกติและตอนเป็น EXE"""
