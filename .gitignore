@@ -68,3 +68,11 @@ venv.bak/
 # ยกเว้นไฟล์รูปภาพที่ใช้เป็นไอคอนหรือทรัพยากรของโปรแกรม
 !icons/*.png
 !resources/*.png
+
+# experiment caches / features (regenerable — เก็บไว้บนดิสก์ แต่ไม่ commit เข้า repo)
+tools/habit_audit/poc/features/
+tools/habit_audit/poc/features_v3/
+tools/habit_audit/poc/cnn_cache*/
+tools/habit_audit/poc/effnet_cache/
+tools/habit_audit/poc/*.npz
+tools/habit_audit/poc/*.log

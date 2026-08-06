@@ -1,0 +1,1065 @@
+{
+ "seed": 7,
+ "total": 211,
+ "n_train": 169,
+ "n_val": 42,
+ "train": [
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 41",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 41\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 24",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 24\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 102",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 102\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 105",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 105\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 250",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 250\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 113",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 113\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 53",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 53\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 73",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 73\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 56",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 56\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 137",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 137\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 59",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 59\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 241",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 241\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 122",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 122\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 243",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 243\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 216",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 216\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 13",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 13\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 233",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 233\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 20",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 20\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 19",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 19\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 37",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 37\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 12",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 12\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 232",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 232\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 30",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 30\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 104",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 104\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 91",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 91\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 54",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 54\\images"
+  },
+  {
+   "series": "be-the-actor",
+   "episode": "ตอนที่ 140",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\be-the-actor\\episodes\\ตอนที่ 140\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 87",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 87\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 45",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 45\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 120",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 120\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 147",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 147\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 117",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 117\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 111",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 111\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 86",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 86\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 47",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 47\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 17",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 17\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 202",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 202\\images"
+  },
+  {
+   "series": "be-the-actor",
+   "episode": "ตอนที่ 132",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\be-the-actor\\episodes\\ตอนที่ 132\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 210",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 210\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 221",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 221\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 61",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 61\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 68",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 68\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 158",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 158\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 81",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 81\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 95",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 95\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 139",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 139\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 228",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 228\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 229",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 229\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 85",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 85\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 31",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 31\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 46",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 46\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 60",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 60\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 23",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 23\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 71",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 71\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 75",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 75\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 50",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 50\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 63",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 63\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 144",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 144\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 217",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 217\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 235",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 235\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 125",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 125\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 96",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 96\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 34",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 34\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 36",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 36\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 145",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 145\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 94",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 94\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 213",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 213\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 33",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 33\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 16",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 16\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 18",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 18\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 80",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 80\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 124",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 124\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 79",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 79\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 76",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 76\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 215",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 215\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 223",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 223\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 39",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 39\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 246",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 246\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 107",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 107\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 208",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 208\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 58",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 58\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 121",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 121\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 234",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 234\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 142",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 142\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 89",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 89\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 236",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 236\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 70",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 70\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 65",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 65\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 78",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 78\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 32",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 32\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 242",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 242\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 29",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 29\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 66",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 66\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 109",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 109\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 225",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 225\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 123",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 123\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 237",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 237\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 245",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 245\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 6",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 6\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 157",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 157\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 98",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 98\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 25",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 25\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 99",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 99\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 112",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 112\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 203",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 203\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 227",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 227\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 230",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 230\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 116",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 116\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 220",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 220\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 247",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 247\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 238",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 238\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 88",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 88\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 42",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 42\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 48",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 48\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 153",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 153\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 1",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 1\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 64",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 64\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 206",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 206\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 84",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 84\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 28",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 28\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 9",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 9\\images"
+  },
+  {
+   "series": "be-the-actor",
+   "episode": "ตอนที่ 131",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\be-the-actor\\episodes\\ตอนที่ 131\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 82",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 82\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 4",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 4\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 114",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 114\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 7",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 7\\images"
+  },
+  {
+   "series": "be-the-actor",
+   "episode": "ตอนที่ 135",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\be-the-actor\\episodes\\ตอนที่ 135\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 249",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 249\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 72",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 72\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 55",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 55\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 110",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 110\\images"
+  },
+  {
+   "series": "be-the-actor",
+   "episode": "ตอนที่ 139",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\be-the-actor\\episodes\\ตอนที่ 139\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 3",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 3\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 148",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 148\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 92",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 92\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 67",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 67\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 69",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 69\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 43",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 43\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 8",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 8\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 49",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 49\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 62",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 62\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 21",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 21\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 22",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 22\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 93",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 93\\images"
+  },
+  {
+   "series": "be-the-actor",
+   "episode": "ตอนที่ 136",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\be-the-actor\\episodes\\ตอนที่ 136\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 5",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 5\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 152",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 152\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 219",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 219\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 2",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 2\\images"
+  },
+  {
+   "series": "be-the-actor",
+   "episode": "ตอนที่ 128",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\be-the-actor\\episodes\\ตอนที่ 128\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 97",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 97\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 154",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 154\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 218",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 218\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 222",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 222\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 159",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 159\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 146",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 146\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 90",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 90\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 240",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 240\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 151",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 151\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 10",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 10\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 204",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 204\\images"
+  },
+  {
+   "series": "be-the-actor",
+   "episode": "ตอนที่ 129",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\be-the-actor\\episodes\\ตอนที่ 129\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 248",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 248\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 155",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 155\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 149",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 149\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 27",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 27\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 212",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 212\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 74",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 74\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 118",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 118\\images"
+  }
+ ],
+ "val": [
+  {
+   "series": "1",
+   "episode": "ตอนที่ 150",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 150\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 26",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 26\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 35",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 35\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 83",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 83\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 141",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 141\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 40",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 40\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 57",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 57\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 44",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 44\\images"
+  },
+  {
+   "series": "be-the-actor",
+   "episode": "ตอนที่ 133",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\be-the-actor\\episodes\\ตอนที่ 133\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 231",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 231\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 115",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 115\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 103",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 103\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 201",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 201\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 77",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 77\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 224",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 224\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 205",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 205\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 156",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 156\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 11",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 11\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 108",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 108\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 100",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 100\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 106",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 106\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 14",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 14\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 214",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 214\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 209",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 209\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 143",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 143\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 138",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 138\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 244",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 244\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 239",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 239\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 15",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 15\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 101",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 101\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 38",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 38\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 226",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 226\\images"
+  },
+  {
+   "series": "be-the-actor",
+   "episode": "ตอนที่ 138",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\be-the-actor\\episodes\\ตอนที่ 138\\images"
+  },
+  {
+   "series": "be-the-actor",
+   "episode": "ตอนที่ 130",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\be-the-actor\\episodes\\ตอนที่ 130\\images"
+  },
+  {
+   "series": "be-the-actor",
+   "episode": "ตอนที่ 134",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\be-the-actor\\episodes\\ตอนที่ 134\\images"
+  },
+  {
+   "series": "1",
+   "episode": "ตอนที่ 140",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\1\\episodes\\ตอนที่ 140\\images"
+  },
+  {
+   "series": "be-the-actor",
+   "episode": "ตอนที่ 137",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\be-the-actor\\episodes\\ตอนที่ 137\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 211",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 211\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 51",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 51\\images"
+  },
+  {
+   "series": "black-corporation-joseon",
+   "episode": "ตอนที่ 119",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\black-corporation-joseon\\episodes\\ตอนที่ 119\\images"
+  },
+  {
+   "series": "evolution-from-the-big-tree",
+   "episode": "ตอนที่ 207",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\evolution-from-the-big-tree\\episodes\\ตอนที่ 207\\images"
+  },
+  {
+   "series": "i-will-raise-this-family-to-greatness",
+   "episode": "ตอนที่ 52",
+   "images": "D:\\python\\YT-guide\\project-data\\series\\i-will-raise-this-family-to-greatness\\episodes\\ตอนที่ 52\\images"
+  }
+ ]
+}

@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "series_root": "D:\\python\\YT-guide\\project-data\\series",
+    "series_count": 5,
+    "episode_count": 211,
+    "slice_count": 14544,
+    "seam_count": 14333
+  },
+  "slice_height_px": {
+    "min": 704,
+    "p25": 2738.0,
+    "median": 3684.0,
+    "p75": 4698.0,
+    "p95": 6488.0,
+    "max": 12876
+  },
+  "content_height_px": {
+    "p25": 2447.8,
+    "median": 3245.0,
+    "p75": 4269.2,
+    "p95": 6147.4
+  },
+  "top_margin_px": {
+    "median": 126.0,
+    "p95": 749.8,
+    "zero_pct": 17.48
+  },
+  "bottom_margin_px": {
+    "median": 96.5,
+    "p95": 536.0,
+    "zero_pct": 17.44
+  },
+  "cut_validation": {
+    "seam_in_gutter_pct": 82.42,
+    "seam_in_gutter_pct_strict": 81.93,
+    "gutter_span_px": {
+      "p25": 71.0,
+      "median": 128.0,
+      "p75": 128.0,
+      "p95": 128.0
+    },
+    "offset_in_gutter_px": {
+      "p25": 60.0,
+      "median": 64.0,
+      "p75": 64.0,
+      "top_bias_pct": 22.09
+    }
+  },
+  "merge_habit": {
+    "slices_with_interior_gutter_pct": 78.51,
+    "interior_bands_per_100_slices": 575.57,
+    "interior_w_p95": 404.0
+  },
+  "per_slice_count": 14544
+}

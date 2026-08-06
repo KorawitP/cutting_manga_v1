@@ -285,7 +285,7 @@ class ManualImageSplitter(QMainWindow):
 
         self.ai_model_path_edit = QLineEdit()
         self.ai_model_path_edit.setReadOnly(True)
-        self.ai_model_path_edit.setPlaceholderText("ค่าเริ่มต้น: best_classifier.pth")
+        self.ai_model_path_edit.setPlaceholderText("ค่าเริ่มต้น: cnn_v5.pth")
         current_ai_model = self.settings.value("ai_model_path", "")
         self.ai_model_path_edit.setText(current_ai_model)
         ai_model_layout.addWidget(self.ai_model_path_edit)
@@ -586,11 +586,11 @@ class ManualImageSplitter(QMainWindow):
         return os.path.join(os.path.abspath("."), relative_path)
 
     def get_ai_model_path(self):
-        """คืน path โมเดล AI ที่ผู้ใช้เลือก หรือ fallback เป็น best_classifier.pth"""
+        """คืน path โมเดล AI ที่ผู้ใช้เลือก หรือ fallback เป็น cnn_v5.pth"""
         custom_path = self.settings.value("ai_model_path", "", type=str).strip()
         if custom_path:
             return custom_path
-        return self.get_resource_path("best_classifier.pth")
+        return self.get_resource_path("cnn_v5.pth")
 
     def reset_files(self):
         """ล้างรายการไฟล์"""
@@ -734,7 +734,7 @@ class ManualImageSplitter(QMainWindow):
 
     def browse_ai_model_file(self):
         """เลือกไฟล์โมเดล AI สำหรับทำนายจุดตัด"""
-        start_dir = self.ai_model_path_edit.text() or self.get_resource_path("best_classifier.pth")
+        start_dir = self.ai_model_path_edit.text() or self.get_resource_path("cnn_v5.pth")
         if os.path.isfile(start_dir):
             start_dir = os.path.dirname(start_dir)
 
@@ -753,12 +753,12 @@ class ManualImageSplitter(QMainWindow):
             self.log_message(f"เปลี่ยนไฟล์โมเดล AI เป็น: {file_path}")
 
     def reset_ai_model_file(self):
-        """กลับไปใช้โมเดลค่าเริ่มต้น best_classifier.pth"""
+        """กลับไปใช้โมเดลค่าเริ่มต้น cnn_v5.pth"""
         self.ai_model_path_edit.clear()
         self.settings.setValue("ai_model_path", "")
         self.ai_predictor = None
         self.ai_weights_path = None
-        self.log_message("เปลี่ยนไฟล์โมเดล AI กลับเป็นค่าเริ่มต้น: best_classifier.pth")
+        self.log_message("เปลี่ยนไฟล์โมเดล AI กลับเป็นค่าเริ่มต้น: cnn_v5.pth")
 
     def validate_save_settings(self):
         """ตรวจสอบความถูกต้องของการตั้งค่าการบันทึก"""
