@@ -30,7 +30,7 @@ class AIPredictor:
         self.window_h = 512
         self.input_width = 512
         self.stride = 16
-        self.smooth = 15
+        self.smooth = 11
         self.a_den = 0.75
         self.min_dist = 400
         self.lam = 0.8
