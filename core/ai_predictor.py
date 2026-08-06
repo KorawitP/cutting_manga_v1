@@ -92,6 +92,14 @@ class AIPredictor:
         except Exception as e:
             return False, f"โหลดโมเดลล้มเหลว: {str(e)}"
 
+    def describe(self):
+        """คืนชื่อเวอร์ชันโมเดลสำหรับแสดงใน UI"""
+        if self.arch == "v5":
+            return "cnn_v5 (v5 · MobileNetV3-512)"
+        if self.arch == "effnet":
+            return "EfficientNetB0 (legacy)"
+        return "ยังไม่ได้โหลด"
+
     # ---------- v5 pipeline ----------
 
     def _make_batch_tensor_v5(self, img, y_batch):

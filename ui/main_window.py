@@ -17,7 +17,6 @@ from ui.ui_components import ModernStyle, ModernButton
 from ui.split_workspace import ManualSplitWorkspace
 from ui.workers import AIPredictionWorker, ImageExportWorker, ImageMergeWorker
 from core.ai_predictor import AIPredictor
-from core.image_ops import save_hard_case_slices
 
 # ปิดคำเตือน decompression bomb สำหรับภาพขนาดใหญ่
 Image.MAX_IMAGE_PIXELS = None
@@ -270,17 +269,17 @@ class ManualImageSplitter(QMainWindow):
         
         settings_layout.addWidget(image_group)
         
-        # ตั้งค่าระบบผู้ช่วย
-        ai_group = QGroupBox("ระบบผู้ช่วย")
+        # ตั้งค่าระบบผู้ช่วย AI
+        ai_group = QGroupBox("ระบบผู้ช่วย AI (v5)")
         ai_layout = QVBoxLayout(ai_group)
-        
-        self.use_ai_checkbox = QCheckBox("ใช้ AI ช่วยหาจุดตัดอัตโนมัติ")
+
+        self.use_ai_checkbox = QCheckBox("ใช้ AI เสนอจุดตัดอัตโนมัติ")
         self.use_ai_checkbox.setChecked(self.settings.value("use_ai", True, type=bool))
         self.use_ai_checkbox.stateChanged.connect(lambda state: self.settings.setValue("use_ai", bool(state)))
         ai_layout.addWidget(self.use_ai_checkbox)
 
         ai_model_layout = QHBoxLayout()
-        ai_model_label = QLabel("ไฟล์โมเดล AI:")
+        ai_model_label = QLabel("โมเดล AI:")
         ai_model_layout.addWidget(ai_model_label)
 
         self.ai_model_path_edit = QLineEdit()
@@ -299,39 +298,17 @@ class ManualImageSplitter(QMainWindow):
         ai_model_layout.addWidget(self.ai_model_reset_btn)
 
         ai_layout.addLayout(ai_model_layout)
-        
-        settings_layout.addWidget(ai_group)
-        
-        # ตั้งค่าที่เก็บ Dataset สำหรับเทรน AI
-        dataset_group = QGroupBox("การจัดเก็บข้อมูลเทรน AI (Dataset)")
-        dataset_layout = QVBoxLayout(dataset_group)
 
-        self.save_dataset_checkbox = QCheckBox("เก็บ Dataset สำหรับเทรน AI")
-        self.save_dataset_checkbox.setChecked(self.settings.value("save_dataset", False, type=bool))
-        self.save_dataset_checkbox.stateChanged.connect(self.on_save_dataset_changed)
-        dataset_layout.addWidget(self.save_dataset_checkbox)
-        
-        dataset_path_layout = QHBoxLayout()
-        dataset_path_label = QLabel("โฟลเดอร์ Dataset:")
-        dataset_path_layout.addWidget(dataset_path_label)
-        
-        self.dataset_path_edit = QLineEdit()
-        # ค่าเริ่มต้นคือโฟลเดอร์รันโปรแกรม/dataset_hardcases
-        default_dataset = os.path.join(os.getcwd(), "dataset_hardcases")
-        current_dataset = self.settings.value("dataset_path", default_dataset)
-        self.dataset_path_edit.setText(current_dataset)
-        self.dataset_path_edit.setReadOnly(True)
-        dataset_path_layout.addWidget(self.dataset_path_edit)
-        
-        self.dataset_browse_btn = ModernButton("เปลี่ยน..", self,
-                                    None,
-                                    self.theme["accent"])
-        self.dataset_browse_btn.clicked.connect(self.browse_dataset_folder)
-        dataset_path_layout.addWidget(self.dataset_browse_btn)
-        
-        dataset_layout.addLayout(dataset_path_layout)
-        self.update_dataset_controls_enabled()
-        settings_layout.addWidget(dataset_group)
+        self.ai_status_label = QLabel("โมเดลเริ่มต้น: cnn_v5 (v5 · MobileNetV3-512)")
+        self.ai_status_label.setStyleSheet("color: #666; font-size: 11px;")
+        ai_layout.addWidget(self.ai_status_label)
+
+        ai_hint_label = QLabel("AI เสนอเส้นให้ก่อน แล้วปรับมือได้ — เรื่องที่คุ้นเคยตัดถูก ~2/3 ของเส้น")
+        ai_hint_label.setStyleSheet("color: #888; font-size: 10px;")
+        ai_hint_label.setWordWrap(True)
+        ai_layout.addWidget(ai_hint_label)
+
+        settings_layout.addWidget(ai_group)
         
         settings_layout.addStretch()
         
@@ -372,13 +349,6 @@ class ManualImageSplitter(QMainWindow):
         h_breakpoints = self.split_workspace.get_horizontal_breakpoints()
         v_breakpoints = self.split_workspace.get_vertical_breakpoints()
         scale_factor = self.split_workspace.get_scale_factor()
-        hard_cases = self.split_workspace.get_hard_cases()
-
-        if hard_cases["0_unsafe"] or hard_cases["1_safe"]:
-            if self.save_dataset_checkbox.isChecked():
-                self.save_hard_cases(self.current_merged_img, hard_cases)
-            else:
-                self.log_message("ข้ามการบันทึก Dataset (ผู้ใช้ไม่ได้เปิดโหมดเก็บ Dataset)")
 
         if h_breakpoints or v_breakpoints:
             self.start_export_worker(
@@ -471,6 +441,14 @@ class ManualImageSplitter(QMainWindow):
         if self.ai_predictor is None or self.ai_weights_path != weights_path:
             self.ai_predictor = AIPredictor(weights_path)
             self.ai_weights_path = weights_path
+            ok, msg = self.ai_predictor.load_model()
+            if ok and hasattr(self.ai_predictor, "arch"):
+                try:
+                    self.ai_status_label.setText(f"โมเดล: {self.ai_predictor.describe()}")
+                except Exception:
+                    pass
+            elif not ok:
+                self.ai_status_label.setText(f"⚠ {msg}")
 
         self.progress_dialog = QProgressDialog("กำลังวิเคราะห์จุดตัดด้วย AI...", "ข้าม (Skip)", 0, 100, self)
         self.progress_dialog.setWindowTitle("AI Guideline")
@@ -703,35 +681,6 @@ class ManualImageSplitter(QMainWindow):
             self.output_path_edit.setText(folder)
             self.log_message(f"เลือกโฟลเดอร์ปลายทาง: {folder}")
 
-    def browse_dataset_folder(self):
-        """เลือกโฟลเดอร์สำหรับบันทึกภาพ Hard Cases (Dataset)"""
-        folder = QFileDialog.getExistingDirectory(
-            self,
-            "เลือกโฟลเดอร์สำหรับบันทึก Dataset",
-            self.dataset_path_edit.text()
-        )
-        
-        if folder:
-            self.dataset_path_edit.setText(folder)
-            self.settings.setValue("dataset_path", folder)
-            self.log_message(f"เปลี่ยนโฟลเดอร์ Dataset เป็น: {folder}")
-
-    def on_save_dataset_changed(self, state):
-        """บันทึกสถานะการเก็บ Dataset และเปิด/ปิดช่องตั้งค่าที่เกี่ยวข้อง"""
-        enabled = bool(state)
-        self.settings.setValue("save_dataset", enabled)
-        self.update_dataset_controls_enabled()
-        if enabled:
-            self.log_message("เปิดการเก็บ Dataset สำหรับเทรน AI")
-        else:
-            self.log_message("ปิดการเก็บ Dataset สำหรับเทรน AI")
-
-    def update_dataset_controls_enabled(self):
-        """เปิดปุ่มเลือกโฟลเดอร์ Dataset เฉพาะเมื่อเปิดโหมดเก็บ Dataset"""
-        enabled = self.save_dataset_checkbox.isChecked()
-        self.dataset_path_edit.setEnabled(enabled)
-        self.dataset_browse_btn.setEnabled(enabled)
-
     def browse_ai_model_file(self):
         """เลือกไฟล์โมเดล AI สำหรับทำนายจุดตัด"""
         start_dir = self.ai_model_path_edit.text() or self.get_resource_path("cnn_v5.pth")
@@ -845,13 +794,3 @@ class ManualImageSplitter(QMainWindow):
             QMessageBox.critical(self, "ผิดพลาด", f"เกิดข้อผิดพลาด: {str(e)}")
             self.set_workflow_busy(False, "พร้อมใช้งาน")
             gc.collect()
-
-    def save_hard_cases(self, img, hard_cases):
-        """บันทึกภาพ Hard Cases สำหรับนำไปเทรน AI ใหม่"""
-        try:
-            default_dataset = os.path.join(os.getcwd(), "dataset_hardcases")
-            hardcase_dir = self.settings.value("dataset_path", default_dataset)
-            save_hard_case_slices(img, hard_cases, hardcase_dir, log_callback=self.log_message)
-        except Exception as e:
-            self.log_message(f"เตือน: ไม่สามารถบันทึก Hard Cases ได้: {str(e)}")
-

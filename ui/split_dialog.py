@@ -30,8 +30,5 @@ class ManualSplitDialog(QDialog):
     def get_vertical_breakpoints(self):
         return self.workspace.get_vertical_breakpoints()
 
-    def get_hard_cases(self):
-        return self.workspace.get_hard_cases()
-
     def keyPressEvent(self, event):
         self.workspace.keyPressEvent(event)

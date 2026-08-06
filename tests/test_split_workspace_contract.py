@@ -30,7 +30,6 @@ class SplitWorkspaceContractTest(unittest.TestCase):
         self.assertTrue(hasattr(workspace, "get_horizontal_breakpoints"))
         self.assertTrue(hasattr(workspace, "get_vertical_breakpoints"))
         self.assertTrue(hasattr(workspace, "get_scale_factor"))
-        self.assertTrue(hasattr(workspace, "get_hard_cases"))
         self.assertEqual(workspace.get_horizontal_breakpoints(), [40, 100])
         self.assertEqual(workspace.get_vertical_breakpoints(), [])
         self.assertEqual(workspace.get_scale_factor(), 1.0)

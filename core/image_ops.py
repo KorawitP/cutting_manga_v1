@@ -1,6 +1,5 @@
 import os
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Callable, Optional
 
 from PIL import Image
@@ -83,71 +82,7 @@ def merge_images_vertically(
     return merged_img
 
 
-def save_hard_case_slices(
-    img,
-    hard_cases,
-    hardcase_dir,
-    log_callback: Optional[LogCallback] = None,
-):
-    unsafe_dir = os.path.join(hardcase_dir, "0_unsafe")
-    safe_dir = os.path.join(hardcase_dir, "1_safe")
-
-    os.makedirs(unsafe_dir, exist_ok=True)
-    os.makedirs(safe_dir, exist_ok=True)
-
-    slice_height = 256
-    target_width = 720
-    scale_ratio = target_width / img.width
-    new_height = int(img.height * scale_ratio)
-    resized_img = img.resize((target_width, new_height), Image.Resampling.LANCZOS)
-
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-    def save_slice(y_original, folder_path, prefix):
-        y_scaled = int(y_original * scale_ratio)
-        half_h = slice_height // 2
-
-        top = max(0, y_scaled - half_h)
-        bottom = top + slice_height
-
-        if bottom > resized_img.height:
-            bottom = resized_img.height
-            top = max(0, bottom - slice_height)
-
-        if bottom - top != slice_height:
-            return False
-
-        slice_img = resized_img.crop((0, top, target_width, bottom))
-        filename = f"hc_{prefix}_{timestamp}_{int(y_original)}.jpg"
-        slice_img.save(os.path.join(folder_path, filename), "JPEG", quality=95)
-        return True
-
-    unsafe_count = 0
-    safe_count = 0
-
-    for y in hard_cases.get("0_unsafe", []):
-        if save_slice(y, unsafe_dir, "fp"):
-            unsafe_count += 1
-
-    for y in hard_cases.get("1_safe", []):
-        if save_slice(y, safe_dir, "fn"):
-            safe_count += 1
-
-    if (unsafe_count or safe_count) and log_callback:
-        log_callback(
-            f"บันทึก Hard Cases สำเร็จ: Unsafe(ลบ/ย้าย)={unsafe_count} ภาพ, "
-            f"Safe(เพิ่ม/ย้ายมา)={safe_count} ภาพ"
-        )
-
-    return unsafe_count, safe_count
-
-
 def split_and_save_image(
-    merged_img,
-    h_breakpoints,
-    v_breakpoints,
-    scale_factor,
-    output_dir,
     episode_num,
     source_name,
     image_format,

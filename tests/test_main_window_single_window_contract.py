@@ -94,12 +94,10 @@ class MainWindowSingleWindowContractTest(unittest.TestCase):
         window.current_merged_img = object()
         window.current_output_dir = "D:/tmp/out"
         window.current_episode_num = "10"
-        window.save_dataset_checkbox.setChecked(False)
         window.split_workspace = Mock()
         window.split_workspace.get_horizontal_breakpoints.return_value = [100]
         window.split_workspace.get_vertical_breakpoints.return_value = []
         window.split_workspace.get_scale_factor.return_value = 1.0
-        window.split_workspace.get_hard_cases.return_value = {"0_unsafe": [], "1_safe": []}
 
         with patch.object(window, "start_export_worker") as start_export_worker:
             window.on_split_workspace_accepted()
