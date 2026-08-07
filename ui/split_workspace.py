@@ -85,8 +85,8 @@ class ManualSplitWorkspace(QWidget):
         
         # --- ส่วนควบคุม (ตั้งให้อยู่ด้านล่าง) ---
         controls_container = QWidget()
-        controls_container.setMinimumHeight(200)  # กำหนดความสูงขั้นต่ำของส่วนควบคุม
-        controls_container.setMaximumHeight(250)  # จำกัดความสูงของส่วนควบคุม
+        controls_container.setMinimumHeight(240)  # กำหนดความสูงขั้นต่ำของส่วนควบคุม
+        controls_container.setMaximumHeight(330)  # จำกัดความสูงของส่วนควบคุม
         controls_layout = QVBoxLayout(controls_container)
         controls_layout.setContentsMargins(10, 5, 10, 5)
         controls_layout.setSpacing(5)
@@ -99,10 +99,11 @@ class ManualSplitWorkspace(QWidget):
         
         # คำแนะนำการใช้งาน
         instruction_label = QLabel(
-            "คำแนะนำ: Shift+คลิกซ้าย = เส้นแนวนอน | Ctrl+Shift+คลิกซ้าย = เส้นแนวตั้ง | Delete = ลบเส้น | Ctrl+Z = ยกเลิก | Ctrl+Y = ทำซ้ำ | Ctrl+เลื่อนเมาส์ = ซูม"
+            "Shift+คลิก = เส้นแนวนอน · Ctrl+Shift+คลิก = แนวตั้ง\nDelete = ลบเส้น · Ctrl+Z/Ctrl+Y = ยกเลิก/ทำซ้ำ · Ctrl+เมาส์ = ซูม"
         )
         instruction_label.setStyleSheet("color: #444; font-size: 11px;")
-        top_bar_layout.addWidget(instruction_label)
+        instruction_label.setWordWrap(True)
+        top_bar_layout.addWidget(instruction_label, 1)
         
         # ปุ่ม Undo/Redo
         self.undo_btn = QPushButton("↩")
@@ -128,39 +129,28 @@ class ManualSplitWorkspace(QWidget):
         
         # --- แท็บ 1: ตั้งค่าเส้น ---
         line_tab = QWidget()
-        line_layout = QHBoxLayout(line_tab)
+        line_layout = QVBoxLayout(line_tab)
         line_layout.setContentsMargins(8, 5, 8, 5)
-        line_layout.setSpacing(8)
-        
-        # ตั้งค่าสีเส้นแนวนอน
-        h_color_label = QLabel("สีเส้นแนวนอน:")
+        line_layout.setSpacing(6)
+
+        # แถว 1: เส้นแนวนอน
+        row_h = QHBoxLayout()
+        row_h.setSpacing(8)
+        h_color_label = QLabel("เส้นแนวนอน:")
         h_color_label.setStyleSheet("color: #444444;")
-        line_layout.addWidget(h_color_label)
-        
+        row_h.addWidget(h_color_label)
+
         self.h_color_btn = QPushButton()
         self.h_color_btn.setFixedSize(30, 25)
         self.h_color_btn.setCursor(Qt.PointingHandCursor)
         self.update_h_color_button()
         self.h_color_btn.clicked.connect(self.select_h_color)
-        line_layout.addWidget(self.h_color_btn)
-        
-        # ตั้งค่าสีเส้นแนวตั้ง
-        v_color_label = QLabel("สีเส้นแนวตั้ง:")
-        v_color_label.setStyleSheet("color: #444444;")
-        line_layout.addWidget(v_color_label)
-        
-        self.v_color_btn = QPushButton()
-        self.v_color_btn.setFixedSize(30, 25)
-        self.v_color_btn.setCursor(Qt.PointingHandCursor)
-        self.update_v_color_button()
-        self.v_color_btn.clicked.connect(self.select_v_color)
-        line_layout.addWidget(self.v_color_btn)
-        
-        # ตั้งค่าความหนาเส้นแนวนอน
-        h_thickness_label = QLabel("ความหนาเส้นแนวนอน:")
+        row_h.addWidget(self.h_color_btn)
+
+        h_thickness_label = QLabel("ความหนา:")
         h_thickness_label.setStyleSheet("color: #444444;")
-        line_layout.addWidget(h_thickness_label)
-        
+        row_h.addWidget(h_thickness_label)
+
         self.h_thickness_slider = QSlider(Qt.Horizontal)
         self.h_thickness_slider.setMinimum(2)
         self.h_thickness_slider.setMaximum(30)
@@ -169,17 +159,31 @@ class ManualSplitWorkspace(QWidget):
         self.h_thickness_slider.setTickInterval(2)
         self.h_thickness_slider.setStyleSheet(get_slider_style())
         self.h_thickness_slider.valueChanged.connect(self.change_h_thickness)
-        line_layout.addWidget(self.h_thickness_slider)
-        
+        row_h.addWidget(self.h_thickness_slider, 1)
+
         self.h_thickness_value = QLabel(f"{self.h_line_thickness}px")
         self.h_thickness_value.setStyleSheet("color: #444444; min-width: 35px;")
-        line_layout.addWidget(self.h_thickness_value)
-        
-        # ตั้งค่าความหนาเส้นแนวตั้ง
-        v_thickness_label = QLabel("ความหนาเส้นแนวตั้ง:")
+        row_h.addWidget(self.h_thickness_value)
+        line_layout.addLayout(row_h)
+
+        # แถว 2: เส้นแนวตั้ง
+        row_v = QHBoxLayout()
+        row_v.setSpacing(8)
+        v_color_label = QLabel("เส้นแนวตั้ง:")
+        v_color_label.setStyleSheet("color: #444444;")
+        row_v.addWidget(v_color_label)
+
+        self.v_color_btn = QPushButton()
+        self.v_color_btn.setFixedSize(30, 25)
+        self.v_color_btn.setCursor(Qt.PointingHandCursor)
+        self.update_v_color_button()
+        self.v_color_btn.clicked.connect(self.select_v_color)
+        row_v.addWidget(self.v_color_btn)
+
+        v_thickness_label = QLabel("ความหนา:")
         v_thickness_label.setStyleSheet("color: #444444;")
-        line_layout.addWidget(v_thickness_label)
-        
+        row_v.addWidget(v_thickness_label)
+
         self.v_thickness_slider = QSlider(Qt.Horizontal)
         self.v_thickness_slider.setMinimum(2)
         self.v_thickness_slider.setMaximum(30)
@@ -188,19 +192,15 @@ class ManualSplitWorkspace(QWidget):
         self.v_thickness_slider.setTickInterval(2)
         self.v_thickness_slider.setStyleSheet(get_slider_style())
         self.v_thickness_slider.valueChanged.connect(self.change_v_thickness)
-        line_layout.addWidget(self.v_thickness_slider)
-        
+        row_v.addWidget(self.v_thickness_slider, 1)
+
         self.v_thickness_value = QLabel(f"{self.v_line_thickness}px")
         self.v_thickness_value.setStyleSheet("color: #444444; min-width: 35px;")
-        line_layout.addWidget(self.v_thickness_value)
-        
-        # Apply ปุ่ม
-        self.apply_line_settings_btn = QPushButton("ปรับใช้")
-        self.apply_line_settings_btn.setCursor(Qt.PointingHandCursor)
-        self.apply_line_settings_btn.clicked.connect(self.apply_line_settings)
-        self.apply_line_settings_btn.setStyleSheet(get_button_style("#4CAF50", "#45a049", "#3d8b40"))
-        line_layout.addWidget(self.apply_line_settings_btn)
-        
+        row_v.addWidget(self.v_thickness_value)
+        line_layout.addLayout(row_v)
+
+        line_layout.addStretch()
+
         tabs.addTab(line_tab, "ตั้งค่าเส้น")
         
         # --- แท็บ 2: พื้นหลัง ---
@@ -316,7 +316,7 @@ class ManualSplitWorkspace(QWidget):
         splitter.addWidget(controls_container)
         
         # กำหนดอัตราส่วนระหว่าง canvas และควบคุม
-        splitter.setSizes([800, 220])
+        splitter.setSizes([650, 300])
         
         # เพิ่ม splitter ไปยัง layout หลัก
         main_layout.addWidget(splitter)
@@ -440,6 +440,7 @@ class ManualSplitWorkspace(QWidget):
         if color.isValid():
             self.h_line_color = color
             self.update_h_color_button()
+            self.apply_line_settings()
 
     def select_v_color(self):
         """เปิดหน้าต่างเลือกสีสำหรับเส้นแนวตั้ง"""
@@ -447,6 +448,7 @@ class ManualSplitWorkspace(QWidget):
         if color.isValid():
             self.v_line_color = color
             self.update_v_color_button()
+            self.apply_line_settings()
 
     def change_h_thickness(self, value):
         """อัพเดทข้อความแสดงความหนาเส้นแนวนอน"""

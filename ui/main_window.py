@@ -84,23 +84,8 @@ class ManualImageSplitter(QMainWindow):
 
         main_widget = self.home_page
         main_layout = QVBoxLayout(main_widget)
-        main_layout.setSpacing(15)
-        main_layout.setContentsMargins(20, 20, 20, 20)
-        
-        # ส่วนหัว
-        header_layout = QHBoxLayout()
-        
-        app_title = QLabel("โปรแกรมแบ่งภาพมังฮวาด้วยตนเอง")
-        app_title.setStyleSheet(f"""
-            font-size: 18px;
-            font-weight: bold;
-            color: {self.theme["primary"]};
-        """)
-        header_layout.addWidget(app_title)
-        
-        header_layout.addStretch()
-        
-        main_layout.addLayout(header_layout)
+        main_layout.setSpacing(12)
+        main_layout.setContentsMargins(16, 12, 16, 12)
         
         # แท็บสำหรับแบ่งหน้าที่
         tab_widget = QTabWidget()
@@ -109,38 +94,37 @@ class ManualImageSplitter(QMainWindow):
         main_tab = QWidget()
         main_tab_layout = QVBoxLayout(main_tab)
         
-        # ส่วนการนำเข้าไฟล์
+        # ส่วนการนำเข้าไฟล์ + จำนวนไฟล์
         import_group = QGroupBox("การนำเข้าไฟล์ภาพ")
-        import_layout = QHBoxLayout(import_group)
-        import_layout.setSpacing(10)  # เพิ่มระยะห่างระหว่างปุ่ม
+        import_layout = QVBoxLayout(import_group)
+        import_layout.setSpacing(6)
+        
+        import_buttons = QHBoxLayout()
+        import_buttons.setSpacing(10)
         
         # ปุ่มเลือกไฟล์ภาพ - ครึ่งซ้าย
         self.select_files_btn = ModernButton("เลือกไฟล์ภาพ", self,
                                            self.style().standardIcon(QStyle.SP_FileDialogDetailedView),
                                            self.theme["primary"])
-        self.select_files_btn.setMinimumHeight(50)  # เพิ่มความสูง
+        self.select_files_btn.setMinimumHeight(42)
         self.select_files_btn.clicked.connect(self.select_image_files)
-        import_layout.addWidget(self.select_files_btn, 1)  # stretch factor = 1 (ครึ่งหนึ่ง)
+        import_buttons.addWidget(self.select_files_btn, 1)
         
         # ปุ่มรีเซต - ครึ่งขวา
         self.reset_btn = ModernButton("รีเซต", self,
                                     self.style().standardIcon(QStyle.SP_DialogResetButton),
                                     self.theme["error"])
-        self.reset_btn.setMinimumHeight(50)  # เพิ่มความสูง
+        self.reset_btn.setMinimumHeight(42)
         self.reset_btn.clicked.connect(self.reset_files)
-        import_layout.addWidget(self.reset_btn, 1)  # stretch factor = 1 (ครึ่งหนึ่ง)
+        import_buttons.addWidget(self.reset_btn, 1)
         
-        main_tab_layout.addWidget(import_group)
-        
-        # แสดงจำนวนไฟล์ที่เลือก
-        file_info_group = QGroupBox("รายละเอียดไฟล์")
-        file_info_layout = QVBoxLayout(file_info_group)
+        import_layout.addLayout(import_buttons)
         
         self.file_label = QLabel("ยังไม่ได้เลือกไฟล์")
-        self.file_label.setAlignment(Qt.AlignCenter)
-        file_info_layout.addWidget(self.file_label)
+        self.file_label.setStyleSheet("color: #666; font-size: 12px;")
+        import_layout.addWidget(self.file_label)
         
-        main_tab_layout.addWidget(file_info_group)
+        main_tab_layout.addWidget(import_group)
         
         # เพิ่มส่วนการตั้งค่าการบันทึก
         save_settings_group = QGroupBox("การตั้งค่าการบันทึก")
@@ -197,14 +181,14 @@ class ManualImageSplitter(QMainWindow):
                                     self.style().standardIcon(QStyle.SP_MediaPlay),
                                     self.theme["secondary"])
         self.split_btn.setMinimumWidth(200)
-        self.split_btn.setMinimumHeight(40)
+        self.split_btn.setMinimumHeight(38)
         self.split_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {self.theme["secondary"]};
                 color: white;
                 border: none;
-                border-radius: 20px;
-                padding: 10px 20px;
+                border-radius: 19px;
+                padding: 8px 20px;
                 font-size: 14px;
                 font-weight: bold;
             }}
@@ -221,7 +205,6 @@ class ManualImageSplitter(QMainWindow):
         start_layout.addStretch()
         main_tab_layout.addLayout(start_layout)
         
-        # เพิ่มสเปซเพื่อให้มีพื้นที่ว่างด้านล่าง
         main_tab_layout.addStretch()
         
         # แท็บการตั้งค่า
