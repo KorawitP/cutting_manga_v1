@@ -83,6 +83,11 @@ def merge_images_vertically(
 
 
 def split_and_save_image(
+    merged_img,
+    h_breakpoints,
+    v_breakpoints,
+    scale_factor,
+    output_dir,
     episode_num,
     source_name,
     image_format,

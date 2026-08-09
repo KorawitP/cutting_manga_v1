@@ -1,12 +1,9 @@
+import importlib.util
 import os
 import cv2
 import numpy as np
-try:
-    import importlib.util
-    torch_spec = importlib.util.find_spec("torch")
-    TORCH_AVAILABLE = torch_spec is not None
-except ImportError:
-    TORCH_AVAILABLE = False
+torch_spec = importlib.util.find_spec("torch")
+TORCH_AVAILABLE = torch_spec is not None
 
 from PIL import Image
 from scipy.signal import find_peaks

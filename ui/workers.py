@@ -1,6 +1,6 @@
 from PySide6.QtCore import QThread, Signal
 
-from core.image_ops import merge_images_vertically, split_and_save_image
+from core.image_ops import SplitResult, merge_images_vertically, split_and_save_image
 
 
 class ImageMergeWorker(QThread):
@@ -105,6 +105,4 @@ class ImageExportWorker(QThread):
             )
             self.export_finished.emit(result)
         except Exception as exc:
-            from core.image_ops import SplitResult
-
             self.export_finished.emit(SplitResult(False, self.output_dir, 0, str(exc)))

@@ -3,6 +3,28 @@
 แยกออกจาก main.py เพื่อลดขนาดไฟล์และจัดระเบียบโค้ด
 """
 
+import re
+
+
+def _lighten_color(color_str, factor):
+    match = re.match(r"#([0-9a-fA-F]{6})", color_str)
+    if match:
+        hex_val = match.group(1)
+        r, g, b = int(hex_val[0:2], 16), int(hex_val[2:4], 16), int(hex_val[4:6], 16)
+        r = min(255, int(r + (255 - r) * (1 - factor)))
+        g = min(255, int(g + (255 - g) * (1 - factor)))
+        b = min(255, int(b + (255 - b) * (1 - factor)))
+        return f"#{r:02x}{g:02x}{b:02x}"
+    match = re.match(r"rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)", color_str)
+    if match:
+        r, g, b = int(match.group(1)), int(match.group(2)), int(match.group(3))
+        r = min(255, int(r + (255 - r) * (1 - factor)))
+        g = min(255, int(g + (255 - g) * (1 - factor)))
+        b = min(255, int(b + (255 - b) * (1 - factor)))
+        return f"rgb({r}, {g}, {b})"
+    return color_str
+
+
 def get_application_stylesheet(theme):
     """
     สร้างและคืนค่า stylesheet สำหรับแอพพลิเคชัน
@@ -282,8 +304,8 @@ def get_button_style(bg_color, hover_color=None, pressed_color=None):
     Returns:
         str: CSS style string สำหรับปุ่ม
     """
-    hover = hover_color or bg_color.replace(')', ', 0.8)')
-    pressed = pressed_color or bg_color.replace(')', ', 0.6)')
+    hover = hover_color or _lighten_color(bg_color, 0.8)
+    pressed = pressed_color or _lighten_color(bg_color, 0.6)
     
     return f"""
         QPushButton {{

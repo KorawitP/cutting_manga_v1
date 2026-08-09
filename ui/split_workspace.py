@@ -18,7 +18,6 @@ class ManualSplitWorkspace(QWidget):
         self.pixmap = pixmap
         self.h_line_color = QColor(255, 0, 0, 150)  # สีแดงกึ่งโปร่งใส
         self.v_line_color = QColor(0, 0, 255, 150)  # สีน้ำเงินกึ่งโปร่งใส
-        self.line_thickness = 4  # ความหนาของเส้นทั่วไป
         self.h_line_thickness = 15  # ความหนาของเส้นแนวนอน
         self.v_line_thickness = 8  # ความหนาของเส้นแนวตั้ง
         self.bg_color = QColor(240, 240, 240)  # สีพื้นหลังเทาอ่อน
@@ -461,13 +460,6 @@ class ManualSplitWorkspace(QWidget):
         self.v_line_thickness = value
         self.v_thickness_value.setText(f"{value}px")
         self.apply_line_settings()
-
-    def change_thickness(self, value):
-        """อัพเดทข้อความแสดงความหนา (เมทอดเดิมให้คงไว้เพื่อความเข้ากันได้)"""
-        self.line_thickness = value
-        self.h_line_thickness = value
-        self.v_line_thickness = value
-        self.thickness_value.setText(f"{value}px")
 
     def apply_line_settings(self):
         """ปรับใช้การตั้งค่าเส้นกับ view"""
