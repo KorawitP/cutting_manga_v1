@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('best_classifier.pth', '.'), ('cnn_v5.pth', '.'), ('core', 'core'), ('ui', 'ui')],
+    datas=[('cnn_v5.pth', '.'), ('core', 'core'), ('ui', 'ui')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

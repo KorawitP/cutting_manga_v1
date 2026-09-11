@@ -17,11 +17,17 @@ Release: `cutting-models-v1` (`https://github.com/KorawitP/cutting_manga_v1/rele
 
 | ไฟล์ | วางที่ | เอาจากไหน |
 |---|---|---|
-| `realesrgan-ncnn-vulkan.exe` + `vcomp*.dll` | `tools/manga_enhancer/bin/` | release ทางการของ Real-ESRGAN (ncnn vulkan build) — โหลดชุด Windows แล้วแตกไฟล์ exe+จำนวน dll ermin วางตาม path นี้ หรือใส่ exe ใน PATH ก็ได้ |
+| `realesrgan-ncnn-vulkan.exe` + `vcomp*.dll` | `tools/manga_enhancer/bin/` | release ทางการของ Real-ESRGAN (ncnn vulkan build) — โหลดชุด Windows แล้วแตกไฟล์ exe+dll วางตาม path นี้ หรือใส่ exe ใน PATH ก็ได้ |
 | `bin/models/*.bin` + `*.param` (`realesrgan-x4plus`, `-anime`, `realesr-animevideov3 x2/x3/x4`) | `tools/manga_enhancer/bin/models/` | มากับแพ็กเกจ ncnn ข้างบน (โฟลเดอร์ models) — model default คือ `realesr-animevideov3` |
+
+## ไฟล์เก่า (legacy — ออกจาก git แล้ว ฝากไว้ใน Release เดียวกัน)
+
+| ไฟล์ | SHA256 | หมายเหตุ |
+|---|---|---|
+| `best_classifier.pth` (15.58MB) | `0d52ba52…453320` | EfficientNet-B0 ยุคแรก · ถอดจาก `main.spec` แล้ว (exe ปัจจุบันแพ็กแค่ `cnn_v5.pth`) · fallback effnet ใน `ai_predictor` ยังโหลดได้ถ้าชี้ path เอง |
+| `cnn_r4.pth` (5.92MB) | `f7649282…9a9cb` | รุ่นทดลองก่อน v5 (`train_r4.py`) · สคริปต์ทดลองที่ชี้ path เดิม (`build_cache_r4*.py`, `time_per_episode.py`) ต้องโหลดไฟล์กลับมาก่อนถ้าจะรัน |
+| `poc/cnn_v5.pth` | — | ไม่แยกเก็บ (bytes เดียวกับ `cnn_v5.pth`) |
 
 ## ตั้งใจไม่รวมใน Release
 
-- `tools/habit_audit/poc/cnn_r4.pth` — รุ่นทดลองเก่า ไม่มีโค้ด production เรียก (โดน v5 แทน)
-- `tools/habit_audit/poc/cnn_v5.pth` — สำเนาเดียวกับ root `cnn_v5.pth` (SHA เดียวกัน) ไม่ต้องเก็บซ้ำ
-- `best_classifier.pth` (root) — legacy EfficientNet ไม่ใช่ default แล้ว (ยังค้างใน `main.spec` รอถอด)
+- `tools/manga_enhancer/bin/*` — ของ public Real-ESRGAN (ดูตารางข้างบน)
