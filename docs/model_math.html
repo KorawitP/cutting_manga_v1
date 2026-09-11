@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สมการทั้งหมดของโมเดลตัดภาพ — cutting_manga_v1</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+<style>
+  :root{
+    --bg:#FAF9F5; --panel:#FFFFFF; --panel2:#F4F0E9; --line:#E6E1D5;
+    --txt:#2A2723; --sub:#6F6860; --dim:#9C9488;
+    --green:#5B8C5A; --cyan:#3E7C84; --amber:#C08A2D; --red:#BE5A47;
+    --blue:#5B7FA6; --purple:#8A7BA8; --pink:#C2688E; --terra:#C15F3C;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:"Inter","Segoe UI","IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif;
+    padding:36px 20px 80px; line-height:1.75;
+  }
+  .wrap{max-width:900px; margin:0 auto}
+  h1,h2{font-family:Georgia,"Source Serif 4","IBM Plex Serif","Noto Serif Thai",serif}
+
+  header{text-align:center; margin-bottom:40px}
+  header h1{font-size:30px; font-weight:700; line-height:1.3;
+    background:linear-gradient(90deg,var(--terra),var(--amber),var(--green));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+  header p{color:var(--sub); margin-top:8px; font-size:14px}
+
+  .sec{background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:22px 26px; margin-bottom:22px; box-shadow:0 1px 4px rgba(42,39,35,.07)}
+  .sec h2{font-size:17px; margin-bottom:4px; display:flex; align-items:center; gap:10px}
+  .sec .idx{flex:0 0 26px; height:26px; border-radius:8px; display:inline-flex;
+    align-items:center; justify-content:center; font-size:14px; font-weight:800; color:#FFF}
+  .sec .desc{color:var(--dim); font-size:12.5px; margin-bottom:14px}
+  .eq{background:var(--panel2); border:1px solid var(--line); border-radius:12px;
+    padding:16px 18px; margin:10px 0; overflow-x:auto}
+  .eq .lbl{display:block; color:var(--dim); font-size:11px; text-transform:uppercase;
+    letter-spacing:.5px; margin-bottom:6px}
+  .eq .lbl b{color:var(--cyan)}
+  .eq .katex{font-size:1.12em}
+  .vars{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px; margin-top:10px}
+  .v{background:var(--panel2); border:1px solid var(--line); border-radius:8px;
+    padding:7px 11px; font-size:12.5px; color:var(--sub)}
+  .v b{color:var(--txt)}
+
+  .hl-green{color:var(--green)} .hl-cyan{color:var(--cyan)}
+  .hl-amber{color:var(--amber)} .hl-red{color:var(--red)} .hl-purple{color:var(--purple)}
+
+  .note{background:#FBF3E3; border:1px solid #E8D5A8; border-radius:10px;
+    padding:11px 15px; font-size:13px; color:#8A6A24; margin-top:12px}
+  .ok{background:#EDF4EA; border-color:#B9CDB4; color:#467044}
+
+  footer{text-align:center; color:var(--dim); font-size:12px; margin-top:44px}
+  footer code{background:var(--panel2); padding:2px 8px; border-radius:5px; color:var(--sub)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>สมการทั้งหมดของโมเดลตัดภาพเว็บตูน</h1>
+  <p>จากโค้ดจริงใน <code>train_v5.py</code> + pipeline ใน <code>core/ai_predictor.py</code> — MobileNetV3-Small 512px + DP</p>
+</header>
+
+<!-- 1. Ground truth -->
+<div class="sec">
+  <h2><span class="idx" style="background:var(--blue)">1</span> Ground truth ฟรีจากโครงสร้างไฟล์</h2>
+  <p class="desc">ทุกตอนที่ตัดแล้ว = label อัตโนมัติ ไม่ต้องเสียแรง label — รอยต่อคือขอบไฟล์ภาพ</p>
+  <div class="eq">
+    <span class="lbl"><b>รอยต่อ</b> = เริ่มสะสมความสูงของแต่ละชิ้น (slice)</span>
+    $$g_i \;=\; \sum_{k=1}^{i} h_k, \qquad i = 1, 2, \dots, N-1$$
+    <span class="lbl"><b>ชุดจุดตัดจริง</b> (Ground Truth)</span>
+    $$G \;=\; \{\, g_1,\, g_2,\, \dots,\, g_{N-1} \,\}, \qquad |G| = N-1$$
+  </div>
+  <div class="vars">
+    <div class="v"><b>$h_k$</b> = ความสูง (px) ของชิ้นภาพที่ k</div>
+    <div class="v"><b>$N$</b> = จำนวนแพเนลในตอน</div>
+    <div class="v"><b>$G$</b> = ชุดจุดที่คนตัดจริง</div>
+  </div>
+</div>
+
+<!-- 2. Window -->
+<div class="sec">
+  <h2><span class="idx" style="background:var(--cyan)">2</span> สร้าง training window (หน้าต่าง 512px)</h2>
+  <p class="desc">เทรนให้ "เห็นการกระจายแบบเดียวกับตอนใช้งาน" — รอยต่อไม่ต้องอยู่กลางเสมอ + สอนว่าแค่ใกล้ไม่ใช่</p>
+  <div class="eq">
+    <span class="lbl"><b>Positive (รอยต่อ)</b> — ครึ่งล่างชิ้น n ต่อครึ่งบนชิ้น n+1 + offset jitter</span>
+    $$w^{+} \;=\; \Big[\, \text{slice}_n^{(H-256-\delta\,:\,H)} \;;\; \text{slice}_{n+1}^{(0\,:\,256-\delta)} \,\Big], \qquad \delta \sim \mathcal{U}(-48,\, 48)$$
+    <span class="lbl"><b>Negative near-miss</b> — ใจกลางห่างจากรอยต่อ 60–280px (หลุมรอบรอยต่อ)</span>
+    $$w^{-}_{\text{near}} : \text{center}(w^{-}) \in \big[60,\, 280\big] \text{ px จาก } g_i$$
+    <span class="lbl"><b>Negative กลางชิ้น</b> — เนื้อหาจริง ไกลรอยต่อ</span>
+    $$w^{-}_{\text{mid}} : y_0 \sim \mathcal{U}\Big(\tfrac{512}{4},\, h_k - 512 - \tfrac{512}{4}\Big)$$
+  </div>
+  <div class="vars">
+    <div class="v"><b>$\delta$</b> = เลื่อนรอยต่อจากกึ่งกลาง ±48px</div>
+    <div class="v"><b>อัตราส่วน</b> 1 pos : 1.5 neg (ครึ่ง neg เป็น near-miss)</div>
+    <div class="v"><b>hflip</b> p=0.5 กัน bias ซ้าย/ขวา</div>
+  </div>
+  <div class="note">near-miss 60–280px นี้คือ "คูน้ำ" รอบรอยต่อ — กด score ข้างๆ ให้ peak คม แม้ผลจริงจะได้แค่ +0.9% ก็ตาม</div>
+</div>
+
+<!-- 3. Model -->
+<div class="sec">
+  <h2><span class="idx" style="background:var(--green)">3</span> โมเดล & ฟังก์ชันความน่าจะเป็น</h2>
+  <p class="desc">MobileNetV3-Small 1.5M params — เบากว่า EfficientNet-B0 3.5 เท่า แต่บริบท 2 เท่า (512 vs 256px)</p>
+  <div class="eq">
+    <span class="lbl"><b>โครงสร้าง</b></span>
+    $$p(x) \;=\; \text{softmax}\big( \mathbf{W}^{\top} \cdot \text{MobileNetV3}_{512}(x) + \mathbf{b} \big), \qquad x \in \mathbb{R}^{3 \times 512 \times 512}$$
+    <span class="lbl"><b>ความน่าจะเป็น "จุดนี้เป็นรอยต่อ"</b></span>
+    $$s(r) \;=\; p(\, y = 1 \mid x_r \,) \in [0,1]$$
+  </div>
+  <div class="vars">
+    <div class="v"><b>Head</b>: $\mathbf{W} \in \mathbb{R}^{576 \times 2}$ (จาก features 576 มิติ)</div>
+    <div class="v"><b>Normalize</b>: ImageNet mean/std</div>
+    <div class="v"><b>$x_r$</b> = หน้าต่าง 512px ที่ครอบแถว r</div>
+  </div>
+</div>
+
+<!-- 4. Loss -->
+<div class="sec">
+  <h2><span class="idx" style="background:var(--amber)">4</span> Loss & Optimizer</h2>
+  <div class="eq">
+    <span class="lbl"><b>Cross-Entropy + Label Smoothing</b> ε = 0.05</span>
+    $$\mathcal{L} \;=\; -\,(1-\varepsilon)\,\log p_y \;-\; \frac{\varepsilon}{C} \sum_{k=1}^{C} \log p_k, \qquad C=2$$
+    <span class="lbl"><b>AdamW</b> — lr 1e-4 · weight decay 1e-4 · AMP mixed precision</span>
+    $$\theta_{t+1} \;=\; \theta_t \;-\; \eta \cdot \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \;-\; \eta\,\lambda_d \,\theta_t$$
+  </div>
+  <div class="vars">
+    <div class="v"><b>$C$</b> = 2 คลาส (boundary / not)</div>
+    <div class="v"><b>$\eta$</b> = 1e-4 · <b>$\lambda_d$</b> = 1e-4</div>
+    <div class="v"><b>12 epochs</b>, batch 32 (RTX 3060 Ti ~1-2 ชม.)</div>
+  </div>
+</div>
+
+<!-- 5. Sliding window -->
+<div class="sec">
+  <h2><span class="idx" style="background:var(--purple)">5</span> Inference — สแกนทั้งตอน</h2>
+  <p class="desc">merge ชิ้นภาพ → resize กว้าง 512 → รูดหน้าต่างทุก 16px (เร็วสุด เพราะ resize ทีเดียว ไม่ใช่ทีละ window)</p>
+  <div class="eq">
+    <span class="lbl"><b>Sliding window</b> (stride s = 16)</span>
+    $$s(r) \;=\; p\big(y=1 \mid \text{window}(r)\big), \qquad r = 0,\, s,\, 2s,\, \dots,\, H-512$$
+    <span class="lbl"><b>Smoothing</b> — window 11 (peak คมกว่า 31)</span>
+    $$\tilde{s}(r) \;=\; \frac{1}{11} \sum_{j=-5}^{5} s(r + j)$$
+  </div>
+  <div class="note">smooth 31 → 11 คือการ tune ที่ได้ recall +14pp (68→84% ตาม metric เก่า) — peak แคบลง</div>
+</div>
+
+<!-- 6. Density prior -->
+<div class="sec">
+  <h2><span class="idx" style="background:var(--pink)">6</span> Density prior — กดจุดที่เนื้อหาหนาทึบ</h2>
+  <p class="desc">รอยต่อจริงส่วนใหญ่อยู่ใน gutter เบาบาง — ลดคะแนนของจุดที่ภาพหนาแน่น (ได้ +14.2pp!)</p>
+  <div class="eq">
+    $$\hat{s}(r) \;=\; \tilde{s}(r) \;-\; \alpha_{den} \cdot \frac{d(r)}{d_{\max}}, \qquad \alpha_{den} \approx 0.75$$
+    <span class="lbl"><b>$d(r)$</b> = ความหนาแน่นเนื้อหา (เช่น สัดส่วน pixel ที่ไม่ใช่ขาว) ของหน้าต่างที่แถว r</span>
+  </div>
+  <div class="vars">
+    <div class="v"><b>$\alpha_{den}$</b> = 0.75 (sweep 3 รอบได้ค่าดีสุด)</div>
+    <div class="v"><b>25.9% → 40.1%</b> fixed-N ±50</div>
+  </div>
+</div>
+
+<!-- 7. Peak + refine -->
+<div class="sec">
+  <h2><span class="idx" style="background:var(--blue)">7</span> จับจุดสูงสุด + ปรับตำแหน่งละเอียด</h2>
+  <div class="eq">
+    <span class="lbl"><b>Local peaks เหนือเกณฑ์</b></span>
+    $$P \;=\; \big\{\, r : \hat{s}(r) \ge \theta,\; \hat{s}(r) \text{ เป็น local max},\; |r_i - r_j| \ge d_{\min} \,\big\}, \qquad \theta = 0.30\!-\!0.35$$
+    <span class="lbl"><b>Refine</b> — เลือกแถวที่เนื้อหาเบาที่สุดใน ±10px ของ peak</span>
+    $$r^{*} \;=\; \arg\min_{r \,\in\, [p-10,\, p+10]} d(r)$$
+  </div>
+  <div class="vars">
+    <div class="v"><b>$\theta$</b> ต่ำ = เส้นเยอะ · สูง = สะอาด</div>
+    <div class="v"><b>$d_{\min}$</b> ≈ 35 (กันจุดติดกัน)</div>
+    <div class="v"><b>ใช้จริง</b>: θ 0.3–0.35, smooth 11</div>
+  </div>
+</div>
+
+<!-- 8. DP -->
+<div class="sec">
+  <h2><span class="idx" style="background:var(--green)">8</span> เลือกชุดเส้นด้วย Dynamic Programming ⭐</h2>
+  <p class="desc">หัวใจที่ทำให้ +10pp — แทนที่จะยิงทุก peak ให้เลือกชุดที่ "รวมคะแนนสูงสุด" + บังคับระยะห่างเหมือนคน</p>
+  <div class="eq">
+    <span class="lbl"><b>Count-free (งานจริง)</b> — AI ตัดสินใจจำนวนเอง ปรับ λ ต่อเส้น</span>
+    $$\max_{r_1 < r_2 < \cdots < r_K} \; \sum_{i=1}^{K} \hat{s}(r_i) \;-\; \lambda \cdot K \qquad \text{s.t. } r_{i+1} - r_i \ge d_{\min}$$
+    <span class="lbl"><b>Fixed-N</b> — ถ้ารู้จำนวนจริง N ต้องเลือก N เส้น</span>
+    $$\max \sum_{i=1}^{N} \hat{s}(r_i) \qquad \text{s.t. } r_{i+1} - r_i \ge d_{\min},\; N = |G|$$
+    <span class="lbl"><b>สมการ recurrence ของ DP</b></span>
+    $$V(i, k) \;=\; \max\!\big( V(i-1, k),\; V(i-d_{\min},\, k-1) + \hat{s}(r_i) \big)$$
+  </div>
+  <div class="vars">
+    <div class="v"><b>$\lambda$</b> = 0.8 (balance recall/prec)</div>
+    <div class="v"><b>$d_{\min}$</b> = 400 (production) / 1500 (eval best)</div>
+    <div class="v"><b>greedy 41% → DP 51.2%</b></div>
+  </div>
+  <div class="note ok">ผลสำคัญ: count-free F1 ≈ 50.5% ≈ fixed-N 51.2% → โมเดล "นับจำนวนเองได้" แล้ว คอขวดไม่ใช่การนับ</div>
+</div>
+
+<!-- 9. Metric -->
+<div class="sec">
+  <h2><span class="idx" style="background:var(--red)">9</span> Metric จริงที่ใช้ตัดสิน — fixed-N ±50</h2>
+  <p class="desc">ตัวเลข 87% เดิมเกินจริงเพราะยิงเส้นเยอะก็ได้สูง — มาตรฐานใหม่ = จำนวนเท่ากัน + แต่ละเส้นห่าง ≤50px</p>
+  <div class="eq">
+    <span class="lbl"><b>1:1 match</b> — เส้นทายชนกับรอยต่อจริงภายใน ±50px</span>
+    $$\text{matched} \;=\; \Big| \big\{\, \hat{r} \in \hat{R} : \exists\, g \in G,\; |\hat{r} - g| \le 50 \,\big\} \Big|$$
+    <span class="lbl"><b>Fixed-N accuracy</b></span>
+    $$\text{acc} \;=\; \frac{\text{matched}}{|G|}$$
+    <span class="lbl"><b>Count-free F1</b></span>
+    $$R = \frac{\text{matched}}{|G|}, \qquad P = \frac{\text{matched}}{|\hat{R}|}, \qquad F1 = \frac{2\,P\,R}{P+R}$$
+  </div>
+  <div class="vars">
+    <div class="v"><b>$\hat{R}$</b> = ชุดเส้นที่โมเดลทาย</div>
+    <div class="v"><b>$G$</b> = รอยต่อจริง</div>
+    <div class="v"><b>v5 final</b>: acc 43.7% · F1 43.9% (val ใหม่)</div>
+  </div>
+</div>
+
+<footer>
+  อ้างอิงจาก <code>tools/habit_audit/poc/train_v5.py</code> · <code>core/ai_predictor.py</code> · <code>TRAINING_GUIDE.md</code> หมวด 9–10<br>
+  render ด้วย <a href="https://katex.org" style="color:var(--cyan)">KaTeX</a> (ต้องต่อเน็ตครั้งแรก)
+</footer>
+
+</div>
+</body>
+</html>

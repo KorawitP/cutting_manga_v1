@@ -7,7 +7,7 @@ from PIL import Image
 
 from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout,
                            QFileDialog, QLabel, QMessageBox, QHBoxLayout, 
-                           QProgressDialog, QProgressBar, QGroupBox, QLineEdit, 
+                           QProgressDialog, QGroupBox, QLineEdit, 
                            QSlider, QComboBox, QTabWidget, QStatusBar, QStyle, 
                            QCheckBox, QStackedWidget)
 from PySide6.QtGui import QPixmap, QImage
@@ -161,18 +161,6 @@ class ManualImageSplitter(QMainWindow):
         
         main_tab_layout.addWidget(save_settings_group)
         
-        # Progress Bar
-        progress_group = QGroupBox("ความคืบหน้า")
-        progress_layout = QVBoxLayout(progress_group)
-        
-        self.progress_label = QLabel("กำลังรอดำเนินการ...")
-        progress_layout.addWidget(self.progress_label)
-        
-        self.progress_bar = QProgressBar()
-        progress_layout.addWidget(self.progress_bar)
-        
-        main_tab_layout.addWidget(progress_group)
-        
         # ปุ่มเริ่มแบ่งภาพ
         start_layout = QHBoxLayout()
         start_layout.addStretch()
@@ -252,6 +240,17 @@ class ManualImageSplitter(QMainWindow):
         
         settings_layout.addWidget(image_group)
         
+        # ตั้งค่าการแจ้งเตือน
+        notification_group = QGroupBox("การแจ้งเตือน")
+        notification_layout = QVBoxLayout(notification_group)
+
+        self.sound_checkbox = QCheckBox("เล่นเสียงแจ้งเตือนเมื่อเปิดหน้าแบ่งภาพ")
+        self.sound_checkbox.setChecked(self.settings.value("enable_sound", True, type=bool))
+        self.sound_checkbox.stateChanged.connect(lambda state: self.settings.setValue("enable_sound", bool(state)))
+        notification_layout.addWidget(self.sound_checkbox)
+
+        settings_layout.addWidget(notification_group)
+        
         # ตั้งค่าระบบผู้ช่วย AI
         ai_group = QGroupBox("ระบบผู้ช่วย AI (v5)")
         ai_layout = QVBoxLayout(ai_group)
@@ -323,6 +322,20 @@ class ManualImageSplitter(QMainWindow):
         self.stack.setCurrentWidget(self.split_workspace)
         self.split_workspace.view.setFocus()
         self.statusBar.showMessage("กำลังแบ่งภาพด้วยตนเอง", 3000)
+        self.play_notification_sound()
+
+    def play_notification_sound(self):
+        """เล่นเสียงแจ้งเตือนสั้นๆ เมื่อเปิดหน้าแบ่งภาพ"""
+        if not self.settings.value("enable_sound", True, type=bool):
+            return
+        if os.environ.get("QT_QPA_PLATFORM") == "offscreen":
+            return
+        try:
+            import winsound
+            if sys.platform == "win32":
+                winsound.PlaySound("SystemNotification", winsound.SND_ALIAS | winsound.SND_ASYNC)
+        except Exception:
+            pass
 
     def on_split_workspace_accepted(self):
         if self.split_workspace is None or self.current_merged_img is None:
