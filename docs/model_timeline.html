@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ไทม์ไลน์พัฒนาโมเดลตัดภาพ — cutting_manga_v1</title>
+<style>
+  :root{
+    --bg:#FAF9F5; --panel:#FFFFFF; --panel2:#F4F0E9; --line:#E6E1D5;
+    --txt:#2A2723; --sub:#6F6860; --dim:#9C9488;
+    --green:#5B8C5A; --cyan:#3E7C84; --amber:#C08A2D; --red:#BE5A47;
+    --blue:#5B7FA6; --purple:#8A7BA8; --pink:#C2688E; --terra:#C15F3C;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:"Inter","Segoe UI","IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif;
+    padding:36px 20px 80px; line-height:1.65;
+  }
+  .wrap{max-width:980px; margin:0 auto}
+  h1,h2{font-family:Georgia,"Source Serif 4","IBM Plex Serif","Noto Serif Thai",serif}
+
+  header{text-align:center; margin-bottom:42px}
+  header h1{font-size:32px; font-weight:700; letter-spacing:.3px; line-height:1.3;
+    background:linear-gradient(90deg,var(--terra),var(--amber),var(--green));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+  header p{color:var(--sub); margin-top:8px; font-size:14px}
+  .badges{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:16px}
+  .badge{background:var(--panel); border:1px solid var(--line); border-radius:999px;
+    padding:6px 14px; font-size:12.5px; color:var(--sub)}
+  .badge b{color:var(--txt)}
+
+  /* ---------- timeline ---------- */
+  .tl{position:relative; margin:8px 0 0}
+  .tl::before{content:""; position:absolute; left:27px; top:8px; bottom:8px; width:2.5px;
+    background:linear-gradient(180deg,var(--cyan),var(--blue),var(--purple),var(--pink)); border-radius:2px}
+  .node{position:relative; padding-left:78px; margin-bottom:34px}
+  .dot{position:absolute; left:27px; top:26px; width:17px; height:17px; border-radius:50%;
+    transform:translateX(-50%); border:4px solid var(--bg); box-shadow:0 0 0 2px var(--c)}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:18px 22px; box-shadow:0 1px 4px rgba(42,39,35,.07)}
+  .card:hover{border-color:var(--c); transform:translateY(-2px); transition:.2s; box-shadow:0 6px 18px rgba(42,39,35,.10)}
+  .tag{display:inline-block; font-size:11px; font-weight:700; letter-spacing:.8px;
+    padding:3px 10px; border-radius:6px; color:#FFF; text-transform:uppercase}
+  .t-idea{background:var(--blue)} .t-r1{background:var(--amber)}
+  .t-r2{background:var(--cyan)} .t-r3{background:var(--green)}
+  .t-data{background:var(--purple)} .t-dead{background:var(--red)}
+  .t-prod{background:var(--pink)}
+  h2{font-size:19px; margin:6px 0 4px}
+  .date{color:var(--dim); font-size:12px}
+  .desc{color:var(--sub); font-size:14px; margin-top:4px}
+  .num{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+  .metric{flex:1; min-width:120px; background:var(--panel2); border:1px solid var(--line);
+    border-radius:10px; padding:10px 12px; text-align:center}
+  .metric .v{font-size:20px; font-weight:800; color:var(--c)}
+  .metric .k{font-size:11px; color:var(--dim); margin-top:2px}
+  .metric .delta{font-size:12px; font-weight:700}
+
+  /* ---------- big chart ---------- */
+  .chart{background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:22px; margin:30px 0 40px; box-shadow:0 1px 4px rgba(42,39,35,.07)}
+  .chart h3{font-size:16px; margin-bottom:4px}
+  .chart .sub{color:var(--dim); font-size:12.5px; margin-bottom:16px}
+  svg{width:100%; height:auto; display:block}
+  .legend{display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin-top:10px; font-size:12.5px; color:var(--sub)}
+  .legend span{display:inline-flex; align-items:center; gap:6px}
+  .sw{width:14px; height:14px; border-radius:4px; display:inline-block}
+
+  /* ---------- table ---------- */
+  table{width:100%; border-collapse:collapse; margin-top:14px; font-size:13.5px}
+  th,td{padding:9px 10px; text-align:center; border-bottom:1px solid var(--line)}
+  th{color:var(--sub); font-size:12px; text-transform:uppercase; letter-spacing:.5px}
+  td:first-child,th:first-child{text-align:left}
+  tr:hover td{background:rgba(42,39,35,.03)}
+  .up{color:var(--green)} .dn{color:var(--red)} .warn{color:var(--amber)}
+
+  /* ---------- roadmap ---------- */
+  .road{display:flex; flex-direction:column; gap:16px; margin-top:4px}
+  .road-row{display:flex; gap:14px; align-items:flex-start}
+  .road-num{flex:0 0 44px; height:44px; border-radius:12px; background:var(--c);
+    color:#FFF; font-size:20px; font-weight:800; display:flex; align-items:center;
+    justify-content:center; margin-top:4px; box-shadow:0 2px 8px rgba(42,39,35,.15)}
+  .road-row .card{flex:1}
+
+  .note{background:#FBF3E3; border:1px solid #E8D5A8;
+    border-radius:10px; padding:12px 16px; font-size:13px; color:#8A6A24; margin:12px 0}
+  .ok{background:#EDF4EA; border-color:#B9CDB4; color:#467044}
+  .bad{background:#F9EBE7; border-color:#E4B9AC; color:#9C4232}
+
+  footer{text-align:center; color:var(--dim); font-size:12px; margin-top:50px}
+  footer code{background:var(--panel2); padding:2px 8px; border-radius:5px; color:var(--sub)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>ที่มาที่ไป : โมเดลตัดภาพเว็บตูน</h1>
+  <p>จาก EfficientNet 256px → MobileNetV3-Small 512px + DP · ตัวเลข real ที่ยึดเป็นมาตรฐาน = <b style="color:var(--green)">fixed-N ±50px</b></p>
+  <div class="badges">
+    <span class="badge">🏭 19 เรื่อง / <b>566 ตอน</b></span>
+    <span class="badge">🖼 <b>43,060</b> แพเนล</span>
+    <span class="badge">✂️ <b>42,494</b> จุดตัด (GT)</span>
+    <span class="badge">📦 <b>cnn_v5.pth</b> = โมเดลปัจจุบัน</span>
+  </div>
+</header>
+
+<!-- ================= ภาพรวมตัวเลข ================= -->
+<div class="chart">
+  <h3>วิวัฒนาการความแม่นยำ (fixed-N ±50px / count-free F1)</h3>
+  <p class="sub">เส้นเขียว = ตัวเลขยืนยันด้วย metric ที่ถูกต้อง · เส้นแดง/เทา = metric เก่าเกินจริง (จำนวนเส้นอิสระ ±100/200)</p>
+  <svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="gA" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#5B8C5A" stop-opacity=".35"/>
+        <stop offset="1" stop-color="#5B8C5A" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <!-- grid -->
+    <g stroke="#EDE9DF" stroke-width="1">
+      <line x1="60" y1="20"  x2="870" y2="20"/>
+      <line x1="60" y1="72"  x2="870" y2="72"/>
+      <line x1="60" y1="124" x2="870" y2="124"/>
+      <line x1="60" y1="176" x2="870" y2="176"/>
+      <line x1="60" y1="228" x2="870" y2="228"/>
+      <line x1="60" y1="280" x2="870" y2="280"/>
+    </g>
+    <g fill="#9C9488" font-size="12" text-anchor="end">
+      <text x="52" y="24">90%</text><text x="52" y="76">80%</text>
+      <text x="52" y="128">70%</text><text x="52" y="180">60%</text>
+      <text x="52" y="232">50%</text><text x="52" y="284">40%</text>
+    </g>
+    <!-- x labels -->
+    <g fill="#6F6860" font-size="12" text-anchor="middle">
+      <text x="105"  y="296">r3 + metric เดิม (เกินจริง)</text>
+      <text x="248"  y="296">r3 honest (25.9%)</text>
+      <text x="391"  y="296">+density prior</text>
+      <text x="534"  y="296">r4 + DP</text>
+      <text x="677"  y="296">v5 (dataset x3)</text>
+      <text x="818"  y="296">v5 + reweight</text>
+    </g>
+    <!-- dotted baseline at 51.2 & 43.7 -->
+    <line x1="60" y1="132" x2="870" y2="132" stroke="#C08A2D" stroke-dasharray="4 5" stroke-width="1.2"/>
+    <line x1="60" y1="158" x2="870" y2="158" stroke="#C08A2D" stroke-dasharray="4 5" stroke-width="1.2" opacity=".55"/>
+    <!-- fake old metric line (red) -->
+    <polyline points="105,20 248,158 391,158 534,158 677,158 818,158" fill="none"
+              stroke="#BE5A47" stroke-width="2.5" stroke-dasharray="6 5" opacity=".8"/>
+    <!-- real metric line (green) with area -->
+    <polyline points="248,270 391,230 534,132 677,158 818,163" fill="none"
+              stroke="#2F7D3F" stroke-width="3"/>
+    <polygon points="248,270 391,230 534,132 677,158 818,163 818,280 248,280"
+             fill="url(#gA)"/>
+    <!-- dots -->
+    <g stroke="#FAF9F5" stroke-width="2">
+      <circle cx="105" cy="20"  r="6" fill="#BE5A47"/>
+      <circle cx="248" cy="270" r="6" fill="#2F7D3F"/>
+      <circle cx="391" cy="230" r="6" fill="#2F7D3F"/>
+      <circle cx="534" cy="132" r="7" fill="#2F7D3F"/>
+      <circle cx="677" cy="158" r="7" fill="#1F6F78"/>
+      <circle cx="818" cy="163" r="6" fill="#BE5A47"/>
+    </g>
+    <!-- value labels -->
+    <g fill="#B8463A" font-size="12.5" font-weight="700" text-anchor="middle">
+      <text x="105" y="12">87.2%</text>
+    </g>
+    <g fill="#2F7D3F" font-size="13" font-weight="800" text-anchor="middle">
+      <text x="248" y="286">25.9%</text>
+      <text x="391" y="224">40.1%</text>
+      <text x="534" y="118">51.2%</text>
+    </g>
+    <g fill="#1F6F78" font-size="13" font-weight="800" text-anchor="middle">
+      <text x="677" y="178">43.7% (val ใหม่)</text>
+    </g>
+    <g fill="#B8463A" font-size="12.5" font-weight="700" text-anchor="middle">
+      <text x="818" y="150">42.7% ❌</text>
+    </g>
+  </svg>
+  <div class="legend">
+    <span><span class="sw" style="background:#BE5A47"></span>metric เดิม (เกินจริง)</span>
+    <span><span class="sw" style="background:#2F7D3F"></span>fixed-N ±50 (จริง)</span>
+    <span><span class="sw" style="background:#1F6F78"></span>r4/v5 จุดอ้างอิง</span>
+    <span><span class="sw" style="background:transparent;border:1px dashed #C08A2D"></span>เส้นอ้างอิง 51.2% / 43.7%</span>
+  </div>
+  <div class="note">⚠️ เลข 51.2% กับ 43.7% เทียบตรงๆ ไม่ได้ — ชุด val ต่างกัน (51.2% = val เก่า 2,856 เส้น / 43.7% = val ใหม่ GT ครบ 8,421 เส้น) ต้องเทียบ r4-vs-v5 บนชุดเดียวกันเท่านั้น</div>
+</div>
+
+<!-- ================= ไทม์ไลน์ ================= -->
+<h2 style="margin:34px 0 6px">ไทม์ไลน์การพัฒนา</h2>
+<p style="color:var(--sub); font-size:13.5px; margin-bottom:22px">ไหลจากบนลงล่าง — เรื่องที่ผ่านแล้ว ล้มเหลวแล้ว ปิดไปแล้ว ทำสีแดงไว้ให้รู้</p>
+
+<div class="tl">
+
+  <div class="node" style="--c:var(--blue)">
+    <span class="dot" style="background:var(--blue)"></span>
+    <div class="card" style="--c:var(--blue)">
+      <span class="tag t-idea">จุดเริ่มต้น</span>
+      <h2>แนวคิด : "ไม่เข้าใจมังฮวา แค่เรียนจุดที่คนตัด"</h2>
+      <div class="date">ต้นแบบ — EfficientNet-B0 256px · 5 เรื่องเดิม 211 ตอน / 14.5K แพเนล</div>
+      <p class="desc">
+        Ground truth ฟรีจากโครงสร้างไฟล์ (ขอบไฟล์ = รอยต่อที่คนตัดจริง) → แบ่งเป็น
+        Stage 1 CNN ตำแหน่งรอยต่อ + Stage 2 เลือกชุดเส้น · โมเดลแรก: <code>best_classifier.pth</code>
+      </p>
+      <div class="num">
+        <div class="metric" style="--c:var(--blue)"><div class="v">256px</div><div class="k">input (context แคบ)</div></div>
+        <div class="metric" style="--c:var(--sub)"><div class="v">90%</div><div class="k">ความแม่นยำ "รู้สึกว่าได้"</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="node" style="--c:var(--amber)">
+    <span class="dot" style="background:var(--amber)"></span>
+    <div class="card" style="--c:var(--amber)">
+      <span class="tag t-r1">รอบ 1 — เปรียบเทียบ GBM vs CNN</span>
+      <h2>ย้ายเป็น MobileNetV3-Small 512px + เทียบ GBM</h2>
+      <div class="date">r1→r3 · input 512px = บริบท 2 เท่า · GBM (7 features) เทรน 2 นาที vs CNN 2 ชม.</div>
+      <p class="desc">
+        Tune smooth 31→11 ทำให้ recall พุ่ง 68→84% · R3 ยืนยัน CNN ชนะขาดด้วย seed 1234 —
+        โดยเฉพาะเรื่องใหม่สไตล์ต่าง (i-will-raise <b class="up">+31.6%</b>) แต่ inference ช้า ~30 เท่า
+      </p>
+      <table>
+        <tr><th>รอบ</th><th>CNN recall*</th><th>GBM recall*</th><th>ผล</th></tr>
+        <tr><td>R1 (15ep, th .3, smooth 31)</td><td>68.7%</td><td>66.8%</td><td class="warn">borderline</td></tr>
+        <tr><td>R2 (tuned smooth 11)</td><td><b>84.7%</b></td><td>71.4%</td><td class="up">CNN ชนะ +13</td></tr>
+        <tr><td>R3 (seed 1234)</td><td><b>87.2%</b></td><td>71.4%</td><td class="up">ชนะซ้ำ +16</td></tr>
+      </table>
+      <div class="note">⚠️ ตัวเลขเป็น recall @ ±100/200px แบบ "ยิงเส้นเยอะก็ได้สูง" → <b>เกินจริง</b> — 87% ที่จริงคือแค่ <b>25.9%</b> (fixed-N ±50)</div>
+    </div>
+  </div>
+
+  <div class="node" style="--c:var(--cyan)">
+    <span class="dot" style="background:var(--cyan)"></span>
+    <div class="card" style="--c:var(--cyan)">
+      <span class="tag t-r2">รอบ 2 — metric ใหม่ honest</span>
+      <h2>เปิดโปงตัวเลขหลอก → ไล่แก้ต้นตอจริง</h2>
+      <div class="date">นับจำนวนเส้นเท่ากับของจริงทุกตอน + แต่ละเส้นต้องห่าง ≤50px (1:1 match)</div>
+      <p class="desc">
+        ตัวเลขจริงของ r3 = <b>25.9%</b> → เจอคอขวดคือ "peak ลอย" ไม่ใช่ "โมเดลมองไม่เห็น"
+        (รอบรอยต่อ score สูงถึง 0.85–0.97 แต่ peak ไม่อยู่ใน ±50px)
+      </p>
+      <div class="num">
+        <div class="metric" style="--c:var(--green)"><div class="v">+14.2%</div><div class="k">density prior (25.9→40.1%)</div></div>
+        <div class="metric" style="--c:var(--green)"><div class="v">+10%</div><div class="k">DP selection min_dist=1500</div></div>
+        <div class="metric" style="--c:var(--green)"><div class="v">51.2%</div><div class="k">r4 + DP final @±50</div></div>
+        <div class="metric" style="--c:var(--cyan)"><div class="v">≈50.5%</div><div class="k">count-free F1 (AI นับเอง)</div></div>
+      </div>
+      <p class="desc" style="margin-top:12px">
+        ⭐ บทเรียนสำคัญ: <b>offset jitter ±48 + near-miss negative</b> (train_r4) ได้แค่ <b class="up">+0.9%</b> —
+        สมมติฐาน "peak ต้องคม" ผิด → ของจริงคือ "เลือก gutter ให้ถูกตัว + บังคับระยะห่างเหมือนคน" (DP แก้ได้)
+        · ทดลองแล้วปิด: segment-length prior ❌ · context 768px ช่วยแค่ 1.7% ❌ (ไม่คุ้ม)
+      </p>
+    </div>
+  </div>
+
+  <div class="node" style="--c:var(--green)">
+    <span class="dot" style="background:var(--green)"></span>
+    <div class="card" style="--c:var(--green)">
+      <span class="tag t-r3">รอบ 3 — dataset ใหญ่ 3 เท่า + เทรนข้ามเครื่อง</span>
+      <h2>เพิ่มความหลากหลายสไตล์ = คันโยกจริง ⭐</h2>
+      <div class="date">เจอต้นฉบับเต็ม D:\ตัดภาพ (เดิมถูก content filter ลบทิ้ง 82–97%) + โหลด 14 เรื่องใหม่จาก Google Drive</div>
+      <p class="desc">
+        รวม <b>19 เรื่อง / 566 ตอน / 43K แพเนล</b> · placeholder filter แบบเนื้อหา (ขยะ 21.5% ถูกกรองทิ้ง) ·
+        เทรน <b>cnn_v5</b> 12 epochs บน RTX 3060 Ti (PC, เร็ว 1.8 เท่า) → val ใหม่ GT ครบ 8,421 เส้น
+      </p>
+      <table>
+        <tr><th>ตัวชี้วัด (val 113 ตอน)</th><th>r4 baseline</th><th>v5</th><th>Δ</th></tr>
+        <tr><td>Fixed-N ±50</td><td>40.9%</td><td><b>43.7%</b></td><td class="up">+2.8</td></tr>
+        <tr><td>Count-free F1</td><td>39.2%</td><td><b>43.9%</b></td><td class="up">+4.7</td></tr>
+        <tr><td>K/N (แม่นจำนวน)</td><td>1.15</td><td><b>1.06</b></td><td class="up">แม่นขึ้น</td></tr>
+      </table>
+      <div class="num" style="margin-top:14px">
+        <div class="metric" style="--c:var(--green)"><div class="v">69.1%</div><div class="k">โจโฉ F1 (53.6→69.1)</div></div>
+        <div class="metric" style="--c:var(--green)"><div class="v">62.6%</div><div class="k">4.สาวน้อย (49.3→62.6)</div></div>
+        <div class="metric" style="--c:var(--green)"><div class="v">40.2%</div><div class="k">13.โซอึน (29.5→40.2)</div></div>
+        <div class="metric" style="--c:var(--red)"><div class="v">24.9%</div><div class="k">11.ชายคนเดียว — ยังยาก</div></div>
+      </div>
+      <div class="note" style="margin-top:12px">จุดอ่อนที่ข้อมูลมากแก้ไม่ได้ = เรื่องสไตล์ยากจริง: 11.ชายคนเดียว 24.9% · 2.เคานต์ 25.2% · 1.อัศวิน 26.3% · i-will-raise 35.6%</div>
+    </div>
+  </div>
+
+  <div class="node" style="--c:var(--pink)">
+    <span class="dot" style="background:var(--pink)"></span>
+    <div class="card" style="--c:var(--pink)">
+      <span class="tag t-prod">ปัจจุบัน</span>
+      <h2>นำ v5 เข้าสู่ production</h2>
+      <div class="date">core/ai_predictor.py อัปเกรดแล้ว · auto-fallback กลับ EfficientNet เดิมถ้า state_dict ไม่ตรง</div>
+      <p class="desc">
+        interface เดิมไม่เปลี่ยน: <code>predict_cut_points(pil_image) → (ok, cut_ys, msg)</code> ·
+        โมเดลจริง = MobileNetV3-Small 512 + DP count-free (λ=0.8, min_dist 400, density prior)
+      </p>
+      <div class="num">
+        <div class="metric" style="--c:var(--green)"><div class="v">~2/3</div><div class="k">เรื่องดี ตัดถูก</div></div>
+        <div class="metric" style="--c:var(--amber)"><div class="v">แก้เกือบทุกเส้น</div><div class="k">เรื่องยาก (1/2/11/i-will-raise)</div></div>
+        <div class="metric" style="--c:var(--cyan)"><div class="v">AI เสนอ + คนลากปรับ</div><div class="k">วิธีใช้ที่ถูกต้อง</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="node" style="--c:var(--red)">
+    <span class="dot" style="background:var(--red)"></span>
+    <div class="card" style="--c:var(--red)">
+      <span class="tag t-dead">ทดลองล้มเหลว ❌</span>
+      <h2>Hard-case reweighting — ปิดไป</h2>
+      <div class="date">commit สุดท้าย (9 ส.ค. 2026) · ไฟล์ทดลองลบแล้ว</div>
+      <p class="desc">
+        ให้ loss ×3 กับ positive ที่เป็น hard-case หวังให้พยายามกับจุดยาก → <b class="dn">F1 43.9% → 42.7%</b>
+        (hard-case ขึ้นนิดเดียวแต่ precision ลด + เฟ้อเส้น K/N 1.06→1.14)
+      </p>
+      <div class="ok" style="margin-top:10px">บทเรียน: กำแพง hard-case ต้อง <b>semantic understanding</b> (panel-grid / VLM) ไม่ใช่ reweight — บน raw pixels ไม่มี feature แยก (effect d&lt;0.5) → <b>คงใช้ cnn_v5 ต่อไป</b></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= Roadmap ================= -->
+<h2 style="margin:34px 0 6px">แนวทางพัฒนาเพิ่ม</h2>
+<p style="color:var(--sub); font-size:13.5px; margin-bottom:22px">
+  เรียงตามน้ำหนักหลักฐานในเอกสาร — ข้อมูลที่พิสูจน์แล้วว่าคุ้ม ต่อด้วยงานที่ทำได้ทันที ปิดท้ายด้วยบทเรียนที่ทดลองแล้วเลิก
+</p>
+
+<div class="road">
+  <div class="road-row" style="--c:var(--green)">
+    <div class="road-num">1</div>
+    <div class="card" style="--c:var(--green)">
+      <h2>🥇 เพิ่มข้อมูลสไตล์ยาก — เลเวอร์แรงสุด (พิสูจน์แล้ว)</h2>
+      <p class="desc">
+        dataset ใหม่ <b>14 เรื่องจาก Google Drive ยังไม่โหลด</b> (9.9.1) — user จะโหลดเอง ·
+        v5 ยืนยันแล้วว่าความหลากหลายสไตล์ = +4.7pp F1 · เป้า = เรื่องยาก (11.ชายคนเดียว, 2.เคานต์, 1.อัศวิน)
+      </p>
+      <div class="num">
+        <div class="metric" style="--c:var(--green)"><div class="v">19→33 เรื่อง</div><div class="k">หลังโหลดครบ</div></div>
+        <div class="metric" style="--c:var(--green)"><div class="v">43.7% → ?</div><div class="k">คาดว่าเรื่องยากดีขึ้น</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="road-row" style="--c:var(--green)">
+    <div class="road-num">2</div>
+    <div class="card" style="--c:var(--green)">
+      <h2>🥈 ระบบสะสมเรียนรู้ (learning loop) — ยังไม่ได้ทำ</h2>
+      <p class="desc">
+        ในแอป: เมื่อ user แก้เส้น AI (ลาก/ลบ/เพิ่ม) → เก็บเป็น label ใหม่ลง <code>dataset_hardcases/</code> →
+        fine-tune CNN ต่อเรื่อยๆ = ข้อมูลงอกเองโดยไม่ต้อง label มือ · (จาก DESIGN_v1.md §6.2)
+      </p>
+      <div class="note ok" style="margin-top:10px">ข้อควรระวัง: เก็บ hard case ที่หลากหลายไม่ซ้ำ — ข้อมูลแก้ซ้ำๆ เยอะเกินไปจะให้ผลเหมือน reweight ที่ล้มเหลว</div>
+    </div>
+  </div>
+
+  <div class="road-row" style="--c:var(--purple)">
+    <div class="road-num">3</div>
+    <div class="card" style="--c:var(--purple)">
+      <h2>🥉 Semantic understanding สำหรับ hard-case — กำแพงที่แท้จริง</h2>
+      <p class="desc">
+        hard-case (ตัดโดนเนื้อหา ไม่มีกัตเตอร์) แม่นแค่ ~ครึ่งของ clean (29% vs 48%) ·
+        <b>ข้อมูล + reweight แก้ไม่ได้</b> (ผลทดลอง 10.6) → ต้องจับ "โครงสร้างแพเนล" (panel-grid / VLM)
+        ที่เข้าใจ semantic ไม่ใช่แค่ pixel — นี่คือโปรเจควิจัยใหญ่แต่เป็นทางเดียวที่จะข้าม 50%
+      </p>
+    </div>
+  </div>
+
+  <div class="road-row" style="--c:var(--cyan)">
+    <div class="road-num">4</div>
+    <div class="card" style="--c:var(--cyan)">
+      <h2>งานทำได้ทันที (ไม่ต้องเทรนใหม่)</h2>
+      <p class="desc">
+        กลุ่มนี้ปรับโค้ด/พารามิเตอร์ได้เลย ใช้ cache เดิม sweep ได้ทันที
+      </p>
+      <table>
+        <tr><th>งาน</th><th>ผลที่คาด</th><th>วิธี</th></tr>
+        <tr><td>Optimize inference speed</td><td>30–40s → เร็วหลายเท่า</td><td>stride 32 · batch 64–128 · ONNX/quantize</td></tr>
+        <tr><td>แก้จุด ±50→±100 (ระยะแก้มือ)</td><td>ตัดถูกบริเวณ แต่ห่างนิดเดียว</td><td>fine-tune ตำแหน่งขั้นสุดท้าย (local refine)</td></tr>
+        <tr><td>UX นับจำนวนเส้น</td><td>ตัดน้อยไปแย่กว่าตัดเกิน</td><td>ใช้ λ ต่ำ (ตัดเยอะไว้ก่อน) — merge ง่ายกว่าเติมเส้น</td></tr>
+        <tr><td>Hybrid GBM + CNN</td><td>เร็วเกือบ GBM + แม่นใกล้ CNN</td><td>GBM สแกน 1s → CNN ตรวจซ้ำเฉพาะจุดไม่ชัวร์</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="road-row" style="--c:var(--red)">
+    <div class="road-num" style="background:var(--red)">✕</div>
+    <div class="card" style="--c:var(--red)">
+      <h2>บทเรียนที่ทดลองแล้ว — อย่าทำซ้ำ</h2>
+      <p class="desc">ทุกไอเดียเหล่านี้ถูกพิสูจน์แล้วว่าไม่ได้ผลหรือไม่คุ้ม (จดไว้กันเสียเวลาซ้ำ)</p>
+      <table>
+        <tr><th>ไอเดีย</th><th>ผลจริง</th></tr>
+        <tr><td>Segment-length prior ใน DP</td><td class="dn">beta สูงยิ่งแย่ — ระยะห่างจริงแปรผันสูง (CV~30%)</td></tr>
+        <tr><td>Larger context 768/1024px</td><td class="dn">ช่วยได้แค่ ~1.7% — เทรน 3 ชม. + inference 2 เท่า ไม่คุ้ม</td></tr>
+        <tr><td>Hard-case reweighting</td><td class="dn">F1 43.9→42.7% — เดาแรงขึ้นไม่ได้สร้างสัญญาณใหม่</td></tr>
+        <tr><td>Density prior / min_dist sweep ต่อ</td><td class="warn">plateau 51.2% — ฝั่ง selection อิ่มตัวแล้ว</td></tr>
+        <tr><td>เทรนให้ "peak คม" (offset jitter/near-miss)</td><td class="warn">+0.9% — ของจริงคือเลือก gutter ให้ถูกตัว ไม่ใช่ peak</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ตารางรวม ================= -->
+<div class="chart">
+  <h3>สรุปโมเดลทั้งหมด</h3>
+  <table>
+    <tr><th>ไฟล์</th><th>โมเดล</th><th>จุดเด่น</th><th>สถานะ</th></tr>
+    <tr><td>best_classifier.pth</td><td>EfficientNet-B0 256px</td><td>รุ่นดั้งเดิม</td><td class="warn">fallback</td></tr>
+    <tr><td>cnn_r3.pth</td><td>MobileNetV3-Small 512</td><td>ชนะ GBM 3 รอบ</td><td class="dim">superseded</td></tr>
+    <tr><td>cnn_r4.pth</td><td>MobileNetV3-Small 512 (jitter+near-miss)</td><td>51.2% @ val เก่า</td><td class="dim">superseded</td></tr>
+    <tr><td><b>cnn_v5.pth</b></td><td><b>MobileNetV3-Small 512 (dataset 19 เรื่อง)</b></td><td>43.7% / F1 43.9% @ val ใหม่</td><td class="up">✅ ใช้จริง</td></tr>
+    <tr><td>cnn_v5_hard (ลบทิ้ง)</td><td>v5 + reweight ×3</td><td>—</td><td class="dn">❌ ล้มเหลว</td></tr>
+  </table>
+</div>
+
+<footer>
+  อ้างอิงจาก <code>tools/habit_audit/TRAINING_GUIDE.md</code> · <code>FINAL_VERDICT.md</code> · <code>DATASET_GUIDE.md</code><br>
+  ไฟล์นี้สร้างเพื่อดูภาพรวม — ไม่ใช่ส่วนหนึ่งของโค้ดโปรเจค
+</footer>
+
+</div>
+</body>
+</html>

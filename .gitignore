@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.npz
+tools/habit_audit/previews/
+tools/habit_audit/poc/*cache*/
+tools/habit_audit/poc/features*/
+tools/manga_enhancer/bin/
+tools/manga_enhancer/downloads/
+downloads/

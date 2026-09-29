@@ -1,0 +1,18 @@
+{
+  "gbm": {
+    "recall": 66.84173669467786,
+    "precision": 48.96388913176533,
+    "pred_cuts": 11437,
+    "real_cuts": 2856,
+    "total_time_s": 40.6,
+    "per_episode_s": 0.97
+  },
+  "cnn": {
+    "recall": 68.69747899159664,
+    "precision": 59.310049282194136,
+    "pred_cuts": 4667,
+    "real_cuts": 2856,
+    "total_time_s": 5411.3,
+    "per_episode_s": 128.84
+  }
+}
