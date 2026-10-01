@@ -788,9 +788,15 @@ class ManualImageSplitter(QMainWindow):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         message_with_time = f"[{timestamp}] {message}"
         
-        # บันทึกลงไฟล์
-        with open(self.log_file, 'a', encoding='utf-8') as f:
-            f.write(message_with_time + '\n')
+        # สร้างโฟลเดอร์ logs ถ้ายังไม่มี
+        try:
+            os.makedirs(self.log_dir, exist_ok=True)
+            # บันทึกลงไฟล์
+            with open(self.log_file, 'a', encoding='utf-8') as f:
+                f.write(message_with_time + '\n')
+        except Exception as e:
+            # ถ้าไม่สามารถเขียนไฟล์ได้ ให้แสดงเฉพาะที่หน้าจอ
+            print(f"Warning: Cannot write to log file: {e}")
         
         print(message_with_time)
 
